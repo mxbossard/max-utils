@@ -18,7 +18,6 @@ package fr.mby.spring.beans.factory;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 
 import org.springframework.beans.factory.config.DependencyDescriptor;
 
@@ -31,15 +30,17 @@ public interface IProxywiredManager {
 	Object getProxywiredDependency(DependencyDescriptor descriptor, String beanName, Set<String> autowiredBeanNames,
 			Object target);
 
-	void modifyProxywiredDepencies(Class<?> type, SortedSet<String> beanNames);
+	void modifyProxywiredDepencies(String proxywiredKey, Set<String> beanNames);
 
-	SortedSet<String> getProxywiredDependencies(Class<?> type);
+	Set<String> viewProxywiredDependencies(String proxywiredKey);
 
-	SortedSet<String> getAllDependencies(Class<?> type);
+	Set<String> viewAllDependencies(Class<?> type);
 
 	public interface IProxywiredManageable {
 
-		void modifyProxywiredDepencies(Map<String, Object> dependencies);
+		void modifyProxywiredDependencies(Map<String, Object> dependencies);
+
+		Set<String> viewProxywiredDependencies();
 
 	}
 }

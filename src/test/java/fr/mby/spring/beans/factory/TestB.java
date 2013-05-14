@@ -16,16 +16,15 @@
 
 package fr.mby.spring.beans.factory;
 
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 /**
  * @author Maxime Bossard - 2013
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "classpath:dynConfProxyListableBeanFactoryContext.xml")
-public class DynamicalyConfigurableProxyListableBeanFactoryTest {
+public class TestB implements ITest {
+
+	@Override
+	public String test() {
+		return "TestB";
+	}
 
 }

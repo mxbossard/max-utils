@@ -16,16 +16,14 @@
 
 package fr.mby.spring.beans.factory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
@@ -44,17 +42,21 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	public IProxywiredManageable proxy(final DependencyDescriptor descriptor, final Object target) {
 		final IProxywiredManageable result;
 
-		final Class<?> type = descriptor.getDependencyType();
+		final Class<?> dependencyType = descriptor.getDependencyType();
 
-		if (Collection.class.isAssignableFrom(type) && type.isInterface()) {
-			result = this.proxyDependencyCollection((Collection<Object>) target);
-		} else if (Map.class.isAssignableFrom(type) && type.isInterface()) {
+		if (Map.class.isAssignableFrom(dependencyType) && dependencyType.isInterface()) {
 			result = this.proxyDependencyMap((Map<String, Object>) target);
-		} else if (type.isArray()) {
+		} else if (List.class.isAssignableFrom(dependencyType) && dependencyType.isInterface()) {
+			result = this.proxyDependencyList((List<Object>) target);
+		} else if (Collection.class.isAssignableFrom(dependencyType) && dependencyType.isInterface()) {
+			result = this.proxyDependencyCollection((Collection<Object>) target, dependencyType);
+		} else if (dependencyType.isArray()) {
 			// We can't do anything
 			throw new IllegalStateException("You cannot use Proxywired annotation on an Array !");
+		} else if (dependencyType.isInterface()) {
+			result = this.proxySingleDependency(target, dependencyType);
 		} else {
-			result = this.proxySingleDependency(type, target);
+			throw new IllegalStateException("Dependency type not supported by this factory !");
 		}
 
 		return result;
@@ -66,15 +68,10 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IProxywiredManageable proxySingleDependency(final Class<?> type, final Object target) {
-		final SortedSet<Object> backingSet = new TreeSet<Object>();
-		backingSet.add(target);
-		final TargetSource targetSource = new ProxywiredBean(type, backingSet);
-		final Class<?>[] proxtyInterfaces = new Class[]{type, IProxywiredManageable.class};
-		final ProxyFactory proxyFactory = new ProxyFactory(proxtyInterfaces);
-		proxyFactory.setTargetSource(targetSource);
+	protected IProxywiredManageable proxySingleDependency(final Object target, final Class<?> type) {
+		final TargetSource targetSource = new ProxywiredBean(type, target);
 
-		return (IProxywiredManageable) proxyFactory.getProxy();
+		return this.proxywire(targetSource);
 	}
 
 	/**
@@ -83,8 +80,23 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IProxywiredManageable proxyDependencyCollection(final Collection<Object> target) {
-		return new ProxywiredSet2(Collection.class, target);
+	protected IProxywiredManageable proxyDependencyList(final List<Object> target) {
+		final TargetSource targetSource = new ProxywiredList(List.class, target);
+
+		return this.proxywire(targetSource);
+	}
+
+	/**
+	 * Proxy assured by a ProxywiredSet.
+	 * 
+	 * @param target
+	 * @return
+	 */
+	protected IProxywiredManageable proxyDependencyCollection(final Collection<Object> target,
+			final Class<?> dependencyType) {
+		final TargetSource targetSource = new ProxywiredCollection(dependencyType, target);
+
+		return this.proxywire(targetSource);
 	}
 
 	/**
@@ -94,121 +106,140 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @return
 	 */
 	protected IProxywiredManageable proxyDependencyMap(final Map<String, Object> target) {
-		return new ProxywiredMap2(Map.class, target);
+		final TargetSource targetSource = new ProxywiredMap(Map.class, target);
+
+		return this.proxywire(targetSource);
 	}
 
-	private class ProxywiredBean extends ProxwyiredStruct<Object, Set<Object>> {
+	protected IProxywiredManageable proxywire(final TargetSource targetSource) {
+		final Class<?>[] proxtyInterfaces = new Class[]{targetSource.getTargetClass(), IProxywiredManageable.class};
+		final ProxyFactory proxyFactory = new ProxyFactory(proxtyInterfaces);
+		proxyFactory.setTargetSource(targetSource);
+
+		return (IProxywiredManageable) proxyFactory.getProxy();
+	}
+
+	private class ProxywiredBean extends ProxwyiredStruct<Object> {
 
 		protected ProxywiredBean(final Class<?> type, final Object target) {
 			super(type, target);
 		}
 
 		@Override
-		protected Set<Object> initStruct(final Object target) {
-			final Set<Object> newSet = new HashSet<Object>(1);
-			newSet.add(target);
-			return newSet;
+		@SuppressWarnings("unchecked")
+		protected Map<String, Object> initStruct(final Object target) {
+			final Map<String, Object> newMap = new HashMap<String, Object>(1);
+
+			if (Collection.class.isAssignableFrom(target.getClass())) {
+				// If the target is a collection
+				for (final Object obj : (Collection<Object>) target) {
+					newMap.put(obj.toString(), obj);
+				}
+			} else if (Map.class.isAssignableFrom(target.getClass())) {
+				// If the target is a collection
+				for (final Object obj : ((Map<?, Object>) target).values()) {
+					newMap.put(obj.toString(), obj);
+				}
+			} else {
+				newMap.put(target.toString(), target);
+			}
+
+			return newMap;
 		}
 
 		@Override
-		protected Set<Object> modifyProxywiredDepenciesInternal(final Map<String, Object> dependencies) {
-			final Set<Object> newSet = new HashSet<Object>(dependencies.values());
-			return newSet;
-		}
-
-		@Override
-		protected Object getTargetInternal() {
+		protected Object buildCachedProxy(final Map<String, Object> backingStore) {
 			// Get the first element of the set
-			return this.backingStore.iterator().next();
-		}
-
-	}
-
-	private class ProxywiredSet extends CopyOnWriteArraySet<Object> implements IProxywiredManageable {
-
-		/** Svuid. */
-		private static final long serialVersionUID = 5227474294627660939L;
-
-		protected ProxywiredSet(final Collection<? extends Object> arg0) {
-			super(arg0);
+			final Object singleDependency = backingStore.values().iterator().next();
+			return singleDependency;
 		}
 
 		@Override
-		public void modifyProxywiredDepencies(final Map<String, Object> dependencies) {
-			this.clear();
-			this.addAll(dependencies.values());
+		protected HashMap<String, Object> modifyBackingStore(final Map<String, Object> dependencies) {
+			return new HashMap<String, Object>(dependencies);
 		}
 
 	}
 
-	private class ProxywiredSet2 extends ProxwyiredStruct<Collection<Object>, Set<Object>> {
+	private class ProxywiredList extends ProxwyiredStruct<List<Object>> {
 
-		protected ProxywiredSet2(final Class<?> type, final Collection<Object> target) {
+		protected ProxywiredList(final Class<?> type, final List<Object> target) {
 			super(type, target);
 		}
 
 		@Override
-		protected Set<Object> initStruct(final Collection<Object> target) {
-			return Collections.unmodifiableSet(new HashSet<Object>(target));
+		protected Map<String, Object> initStruct(final List<Object> target) {
+			final Map<String, Object> newMap = new HashMap<String, Object>(target.size());
+			for (final Object obj : target) {
+				newMap.put(obj.toString(), obj);
+			}
+			return newMap;
 		}
 
 		@Override
-		protected Set<Object> modifyProxywiredDepenciesInternal(final Map<String, Object> dependencies) {
-			return Collections.unmodifiableSet(new HashSet<Object>(dependencies.values()));
-		}
-
-		@Override
-		protected Set<Object> getTargetInternal() {
-			return this.backingStore;
+		protected List<Object> buildCachedProxy(final Map<String, Object> backingStore) {
+			return Collections.unmodifiableList(new ArrayList<Object>(backingStore.values()));
 		}
 
 	}
 
-	private class ProxywiredMap extends ConcurrentHashMap<String, Object> implements IProxywiredManageable {
+	private class ProxywiredCollection extends ProxwyiredStruct<Collection<Object>> {
 
-		/** Svuid. */
-		private static final long serialVersionUID = 9138691669418541733L;
-
-		protected ProxywiredMap(final Map<? extends String, ? extends Object> arg0) {
-			super(16, 0.75f, 1);
-			this.putAll(arg0);
+		protected ProxywiredCollection(final Class<?> type, final Collection<Object> target) {
+			super(type, target);
 		}
 
 		@Override
-		public void modifyProxywiredDepencies(final Map<String, Object> dependencies) {
-			this.clear();
-			this.putAll(dependencies);
+		protected Map<String, Object> initStruct(final Collection<Object> target) {
+			final Map<String, Object> newMap = new HashMap<String, Object>(target.size());
+			for (final Object obj : target) {
+				newMap.put(obj.toString(), obj);
+			}
+			return newMap;
 		}
+
+		@Override
+		protected Collection<Object> buildCachedProxy(final Map<String, Object> backingStore) {
+			final Collection<Object> result;
+
+			if (Set.class.isAssignableFrom(this.getTargetClass())) {
+				result = Collections.unmodifiableSet(new HashSet<Object>(backingStore.values()));
+			} else if (Collection.class.isAssignableFrom(this.getTargetClass())) {
+				result = Collections.unmodifiableCollection(backingStore.values());
+			} else {
+				throw new IllegalStateException("Only the Set is supported as specialization for generic collection !");
+			}
+
+			return result;
+		}
+
 	}
 
-	private class ProxywiredMap2 extends ProxwyiredStruct<Map<String, Object>, Map<String, Object>> {
+	private class ProxywiredMap extends ProxwyiredStruct<Map<String, Object>> {
 
-		protected ProxywiredMap2(final Class<?> type, final Map<String, Object> target) {
+		protected ProxywiredMap(final Class<?> type, final Map<String, Object> target) {
 			super(type, target);
 		}
 
 		@Override
 		protected Map<String, Object> initStruct(final Map<String, Object> target) {
-			return Collections.unmodifiableMap(new HashMap<String, Object>(target));
+			return new HashMap<String, Object>(target);
 		}
 
 		@Override
-		protected Map<String, Object> modifyProxywiredDepenciesInternal(final Map<String, Object> dependencies) {
-			return Collections.unmodifiableMap(new HashMap<String, Object>(dependencies));
-		}
-
-		@Override
-		protected Map<String, Object> getTargetInternal() {
-			return this.backingStore;
+		protected Map<String, Object> buildCachedProxy(final Map<String, Object> backingStore) {
+			return Collections.unmodifiableMap(backingStore);
 		}
 
 	}
 
-	private abstract class ProxwyiredStruct<T, S> implements TargetSource, IProxywiredManageable {
+	private abstract class ProxwyiredStruct<T> implements TargetSource, IProxywiredManageable {
 
 		private final Class<?> type;
 
-		protected S backingStore;
+		private Map<String, Object> backingStore;
+
+		private Object cachedProxy;
 
 		private boolean lock = false;
 
@@ -217,6 +248,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 			this.type = type;
 			this.backingStore = this.initStruct(target);
+			this.cachedProxy = this.buildCachedProxy(this.backingStore);
 		}
 
 		/**
@@ -224,21 +256,14 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		 * 
 		 * @param target
 		 */
-		protected abstract S initStruct(T target);
-
-		/**
-		 * Build the backing Map with refreshed data.
-		 * 
-		 * @param target
-		 */
-		protected abstract S modifyProxywiredDepenciesInternal(Map<String, Object> dependencies);
+		protected abstract Map<String, Object> initStruct(T target);
 
 		/**
 		 * Build the Target to return.
 		 * 
 		 * @return
 		 */
-		protected abstract T getTargetInternal();
+		protected abstract T buildCachedProxy(Map<String, Object> backingStore);
 
 		@Override
 		public Class<?> getTargetClass() {
@@ -256,7 +281,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 				this.wait(10);
 			}
 
-			return this.getTargetInternal();
+			return this.cachedProxy;
 		}
 
 		@Override
@@ -265,12 +290,29 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		}
 
 		@Override
-		public void modifyProxywiredDepencies(final Map<String, Object> dependencies) {
+		public void modifyProxywiredDependencies(final Map<String, Object> dependencies) {
 			this.lock = true;
-			this.backingStore = this.modifyProxywiredDepenciesInternal(dependencies);
+			this.backingStore = this.modifyBackingStore(dependencies);
+			this.cachedProxy = this.buildCachedProxy(this.backingStore);
 			this.lock = false;
 			this.notifyAll();
 		}
 
+		/**
+		 * Modify the backing store following modifyProxywiredDependencies() call.
+		 * 
+		 * @param dependencies
+		 * @return
+		 */
+		protected HashMap<String, Object> modifyBackingStore(final Map<String, Object> dependencies) {
+			return new HashMap<String, Object>(dependencies);
+		}
+
+		@Override
+		public Set<String> viewProxywiredDependencies() {
+			return Collections.unmodifiableSet(this.backingStore.keySet());
+		}
+
 	}
+
 }

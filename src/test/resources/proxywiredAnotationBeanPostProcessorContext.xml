@@ -3,6 +3,18 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<bean id="proxywireAnnotationProcessor" class="fr.mby.spring.beans.factory.annotation.ProxywiredAnnotationBeanPostProcessor" />
+	<bean id="proxywiredManager" class="fr.mby.spring.beans.factory.BasicProxywiredManager">
+		<property name="proxywiredFactory">
+			<bean class="fr.mby.spring.beans.factory.BasicProxywiredFactory" />
+		</property>
+	</bean>
+
+	<bean id="proxywireAnnotationProcessor" class="fr.mby.spring.beans.factory.annotation.ProxywiredAnnotationBeanPostProcessor">
+		<property name="proxywiredManager" ref="proxywiredManager" />
+	</bean>
+	
+	<bean id="testA" class="fr.mby.spring.beans.factory.TestA" />
+	<bean id="testB" class="fr.mby.spring.beans.factory.TestB" />
+	<bean id="testC" class="fr.mby.spring.beans.factory.TestC" />
 
 </beans>

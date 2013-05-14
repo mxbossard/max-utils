@@ -19,6 +19,7 @@ package fr.mby.spring.beans.factory.annotation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -28,11 +29,14 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.TypeConverter;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
+import org.springframework.util.Assert;
 
 import fr.mby.spring.beans.factory.IProxywiredManager;
 
@@ -42,11 +46,16 @@ import fr.mby.spring.beans.factory.IProxywiredManager;
  */
 public class ProxywiredAnnotationBeanPostProcessor extends AutowiredAnnotationBeanPostProcessor
 		implements
-			BeanFactoryAware {
+			BeanFactoryAware,
+			InitializingBean {
 
 	private static final Class<? extends Annotation> PROXY_ANNOTATION = Proxywired.class;
 
+	private ConfigurableListableBeanFactory originalBeanFactory;
+
 	private ConfigurableListableBeanFactory instrumentedBeanFactory;
+
+	private IProxywiredManager proxywiredManager;
 
 	/**
 	 * Copy paste from AutowiredAnnotationBeanPostProcessor with Proxywired type added.
@@ -77,9 +86,16 @@ public class ProxywiredAnnotationBeanPostProcessor extends AutowiredAnnotationBe
 					"AutowiredAnnotationBeanPostProcessor requires a ConfigurableListableBeanFactory");
 		}
 
+		this.originalBeanFactory = (ConfigurableListableBeanFactory) beanFactory;
+
 		final BeanFactory instrumentedBeanFactory = this
 				.instrumentBeanFactory((ConfigurableListableBeanFactory) beanFactory);
 		super.setBeanFactory(instrumentedBeanFactory);
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Assert.notNull(this.proxywiredManager, "No IProxywiredManager configured !");
 	}
 
 	/**
@@ -100,15 +116,38 @@ public class ProxywiredAnnotationBeanPostProcessor extends AutowiredAnnotationBe
 		return this.instrumentedBeanFactory;
 	}
 
+	/**
+	 * Getter of proxywiredManager.
+	 * 
+	 * @return the proxywiredManager
+	 */
+	public IProxywiredManager getProxywiredManager() {
+		return this.proxywiredManager;
+	}
+
+	/**
+	 * Setter of proxywiredManager.
+	 * 
+	 * @param proxywiredManager
+	 *            the proxywiredManager to set
+	 */
+	public void setProxywiredManager(final IProxywiredManager proxywiredManager) {
+		this.proxywiredManager = proxywiredManager;
+	}
+
 	private class ResolveDependencyMethodInterceptor implements MethodInterceptor {
 
 		private static final String INTERCEPTED_METHOD_NAME = "resolveDependency";
 
-		private IProxywiredManager manager;
-
 		@Override
 		public Object invoke(final MethodInvocation invocation) throws Throwable {
-			Object result = invocation.proceed();
+			Object result = null;
+
+			try {
+				result = invocation.proceed();
+			} catch (final NoUniqueBeanDefinitionException e) {
+				result = this.resolveNonUniqueDependency(invocation);
+			}
 
 			// Init and test the method invokation
 			if (this.isCorrectMethod(invocation) && this.isProxywiredAnnotationUsed(invocation)) {
@@ -131,7 +170,22 @@ public class ProxywiredAnnotationBeanPostProcessor extends AutowiredAnnotationBe
 			final String beanName = (String) args[1];
 			final Set<String> autowiredBeanNames = (Set<String>) args[2];
 
-			return this.manager.getProxywiredDependency(descriptor, beanName, autowiredBeanNames, target);
+			return ProxywiredAnnotationBeanPostProcessor.this.getProxywiredManager().getProxywiredDependency(
+					descriptor, beanName, autowiredBeanNames, target);
+		}
+
+		/**
+		 * @param invocation
+		 * @return
+		 */
+		protected Object resolveNonUniqueDependency(final MethodInvocation invocation) {
+			final Object[] args = invocation.getArguments();
+			final DependencyDescriptor descriptor = (DependencyDescriptor) args[0];
+			final Class<?> type = descriptor.getDependencyType();
+
+			final Map<String, ?> result = ProxywiredAnnotationBeanPostProcessor.this.originalBeanFactory
+					.getBeansOfType(type);
+			return result;
 		}
 
 		/**
@@ -146,7 +200,7 @@ public class ProxywiredAnnotationBeanPostProcessor extends AutowiredAnnotationBe
 			final Annotation[] annotations = descriptor.getAnnotations();
 			if (annotations != null) {
 				for (final Annotation annotation : annotations) {
-					if (ProxywiredAnnotationBeanPostProcessor.PROXY_ANNOTATION.equals(annotation.getClass())) {
+					if (ProxywiredAnnotationBeanPostProcessor.PROXY_ANNOTATION.isAssignableFrom(annotation.getClass())) {
 						return true;
 					}
 				}
