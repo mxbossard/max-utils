@@ -36,7 +36,7 @@ import org.springframework.beans.factory.config.DependencyDescriptor;
 import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredManageable;
 
 /**
- * @author Maxime BOSSARD.
+ * @author Maxime BOSSARD - 2013.
  * 
  */
 public class BasicProxywiredFactory implements IProxywiredFactory {
@@ -286,7 +286,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 				while (this.lock) {
 					this.wait(10);
 				}
-				
+
 				return this.cachedProxy;
 			}
 		}

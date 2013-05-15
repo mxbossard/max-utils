@@ -1,6 +1,19 @@
 /**
- * 
+ * Copyright 2012 Maxime Bossard
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package fr.mby.utils.common.test;
 
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -25,7 +38,7 @@ import org.apache.logging.log4j.Logger;
  * This class can be seen as a runner for a common test method.
  * 
  * 
- * @author Maxime Bossard
+ * @author Maxime Bossard - 2012.
  * @param <T> The test class in which the unit test method is.
  * @param <V> the return type of each test
  */
@@ -34,9 +47,12 @@ public abstract class LoadRunner<T, V> {
     /** Logger. */
     private static final Logger LOG = LogManager.getLogger(LoadRunner.class);
 
-    /** Message d'erreur en cas d'exception jetÃ©e par un test. */
+    /** Message d'erreur en cas d'exception jetée par un test. */
     private static final String MESSAGE_EXCEPTION_DURING_TEST = "----- Error during load test. -----";
 
+    /** Message indicating a load test success. */
+    private static final String MESSAGE_TEST_SUCCEED = "----- Load test successfull. -----";
+    
     /** Nombre d'iterations par defaut. */
     private static final Integer NB_ITERATIONS_DEFAUT = 10000;
 
@@ -211,11 +227,13 @@ public abstract class LoadRunner<T, V> {
      * S'occupe du rapport d'erreur.
      */
     private void rapportErreurThreadException() {
-        LoadRunner.LOG.info(LoadRunner.MESSAGE_EXCEPTION_DURING_TEST);
-        LoadRunner.LOG.info("[{}] completed threads.", this.numberFinishedThread);
         if (this.threadWithException != null) {
+        	LoadRunner.LOG.info(LoadRunner.MESSAGE_EXCEPTION_DURING_TEST);
         	LoadRunner.LOG.info("Thread with error: [{}].", this.threadWithException.getName());
+        } else {
+        	LoadRunner.LOG.info(LoadRunner.MESSAGE_TEST_SUCCEED);
         }
+        LoadRunner.LOG.info("[{}] completed threads.", this.numberFinishedThread);
     }
 
     /**
