@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +80,6 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	}
 
 	@Test
-	@Ignore
 	public void test2() throws Exception {
 		Assert.assertNotNull("Beans were not autowired !", this.iTestAutowired);
 		Assert.assertEquals("Bad autowired bean count !", 3, this.iTestAutowired.size());
