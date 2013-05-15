@@ -131,4 +131,9 @@
 		</repository>
 	</repositories>
 
+	<parent>
+		<groupId>fr.mby.maven</groupId>
+		<artifactId>basic-parent</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 </project>

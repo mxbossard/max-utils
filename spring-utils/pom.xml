@@ -2,12 +2,16 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>fr.mby.utils</groupId>
-		<artifactId>max-utils</artifactId>
+		<groupId>fr.mby.maven</groupId>
+		<artifactId>basic-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>spring-utils</artifactId>
 
+	<properties>
+		<spring.version>3.2.1.RELEASE</spring.version>
+	</properties>
+	
 	<dependencies>
 		<!-- Spring dependencies -->
 		<dependency>
@@ -36,5 +40,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>fr.mby.utils</groupId>
+			<artifactId>common-utils</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
+	<groupId>fr.mby.utils</groupId>
+	<version>0.0.1-SNAPSHOT</version>
 </project>
