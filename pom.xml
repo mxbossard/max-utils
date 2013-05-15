@@ -6,7 +6,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 
 	<properties>
-		<spring.version>3.2.2.RELEASE</spring.version>
+		<spring.version>3.2.1.RELEASE</spring.version>
 		<junit.version>4.11</junit.version>
 	</properties>
 

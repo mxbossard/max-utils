@@ -16,15 +16,19 @@
 
 package fr.mby.spring.beans.factory;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
@@ -114,12 +118,13 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	protected IProxywiredManageable proxywire(final TargetSource targetSource) {
 		final Class<?>[] proxtyInterfaces = new Class[]{targetSource.getTargetClass(), IProxywiredManageable.class};
 		final ProxyFactory proxyFactory = new ProxyFactory(proxtyInterfaces);
+		proxyFactory.addAdvice(new ProxywiredManageableInterceptor((IProxywiredManageable) targetSource));
 		proxyFactory.setTargetSource(targetSource);
 
 		return (IProxywiredManageable) proxyFactory.getProxy();
 	}
 
-	private class ProxywiredBean extends ProxwyiredStruct<Object> {
+	private class ProxywiredBean extends ProxywiredStruct<Object> {
 
 		protected ProxywiredBean(final Class<?> type, final Object target) {
 			super(type, target);
@@ -128,7 +133,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		@Override
 		@SuppressWarnings("unchecked")
 		protected Map<String, Object> initStruct(final Object target) {
-			final Map<String, Object> newMap = new HashMap<String, Object>(1);
+			final Map<String, Object> newMap = new LinkedHashMap<String, Object>(1);
 
 			if (Collection.class.isAssignableFrom(target.getClass())) {
 				// If the target is a collection
@@ -155,13 +160,13 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		}
 
 		@Override
-		protected HashMap<String, Object> modifyBackingStore(final Map<String, Object> dependencies) {
-			return new HashMap<String, Object>(dependencies);
+		protected HashMap<String, Object> modifyBackingStore(final LinkedHashMap<String, Object> dependencies) {
+			return new LinkedHashMap<String, Object>(dependencies);
 		}
 
 	}
 
-	private class ProxywiredList extends ProxwyiredStruct<List<Object>> {
+	private class ProxywiredList extends ProxywiredStruct<List<Object>> {
 
 		protected ProxywiredList(final Class<?> type, final List<Object> target) {
 			super(type, target);
@@ -169,7 +174,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 		@Override
 		protected Map<String, Object> initStruct(final List<Object> target) {
-			final Map<String, Object> newMap = new HashMap<String, Object>(target.size());
+			final Map<String, Object> newMap = new LinkedHashMap<String, Object>(target.size());
 			for (final Object obj : target) {
 				newMap.put(obj.toString(), obj);
 			}
@@ -183,7 +188,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	}
 
-	private class ProxywiredCollection extends ProxwyiredStruct<Collection<Object>> {
+	private class ProxywiredCollection extends ProxywiredStruct<Collection<Object>> {
 
 		protected ProxywiredCollection(final Class<?> type, final Collection<Object> target) {
 			super(type, target);
@@ -191,7 +196,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 		@Override
 		protected Map<String, Object> initStruct(final Collection<Object> target) {
-			final Map<String, Object> newMap = new HashMap<String, Object>(target.size());
+			final Map<String, Object> newMap = new LinkedHashMap<String, Object>(target.size());
 			for (final Object obj : target) {
 				newMap.put(obj.toString(), obj);
 			}
@@ -203,7 +208,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 			final Collection<Object> result;
 
 			if (Set.class.isAssignableFrom(this.getTargetClass())) {
-				result = Collections.unmodifiableSet(new HashSet<Object>(backingStore.values()));
+				result = Collections.unmodifiableSet(new LinkedHashSet<Object>(backingStore.values()));
 			} else if (Collection.class.isAssignableFrom(this.getTargetClass())) {
 				result = Collections.unmodifiableCollection(backingStore.values());
 			} else {
@@ -215,7 +220,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	}
 
-	private class ProxywiredMap extends ProxwyiredStruct<Map<String, Object>> {
+	private class ProxywiredMap extends ProxywiredStruct<Map<String, Object>> {
 
 		protected ProxywiredMap(final Class<?> type, final Map<String, Object> target) {
 			super(type, target);
@@ -223,7 +228,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 		@Override
 		protected Map<String, Object> initStruct(final Map<String, Object> target) {
-			return new HashMap<String, Object>(target);
+			return new LinkedHashMap<String, Object>(target);
 		}
 
 		@Override
@@ -233,7 +238,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	}
 
-	private abstract class ProxwyiredStruct<T> implements TargetSource, IProxywiredManageable {
+	private abstract class ProxywiredStruct<T> implements TargetSource, IProxywiredManageable {
 
 		private final Class<?> type;
 
@@ -243,7 +248,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 		private boolean lock = false;
 
-		protected ProxwyiredStruct(final Class<?> type, final T target) {
+		protected ProxywiredStruct(final Class<?> type, final T target) {
 			super();
 
 			this.type = type;
@@ -278,7 +283,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		@Override
 		public Object getTarget() throws Exception {
 			while (this.lock) {
-				this.wait(10);
+				Thread.sleep(10);
 			}
 
 			return this.cachedProxy;
@@ -290,12 +295,11 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		}
 
 		@Override
-		public void modifyProxywiredDependencies(final Map<String, Object> dependencies) {
+		public void modifyProxywiredDependencies(final LinkedHashMap<String, Object> dependencies) {
 			this.lock = true;
 			this.backingStore = this.modifyBackingStore(dependencies);
 			this.cachedProxy = this.buildCachedProxy(this.backingStore);
 			this.lock = false;
-			this.notifyAll();
 		}
 
 		/**
@@ -304,13 +308,88 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		 * @param dependencies
 		 * @return
 		 */
-		protected HashMap<String, Object> modifyBackingStore(final Map<String, Object> dependencies) {
-			return new HashMap<String, Object>(dependencies);
+		protected HashMap<String, Object> modifyBackingStore(final LinkedHashMap<String, Object> dependencies) {
+			return new LinkedHashMap<String, Object>(dependencies);
 		}
 
 		@Override
 		public Set<String> viewProxywiredDependencies() {
 			return Collections.unmodifiableSet(this.backingStore.keySet());
+		}
+
+	}
+
+	private class ProxywiredManageableInterceptor implements MethodInterceptor, IProxywiredManageable {
+
+		private static final String INTERCEPTED_METHOD_NAME_1 = "modifyProxywiredDependencies";
+
+		private static final String INTERCEPTED_METHOD_NAME_2 = "viewProxywiredDependencies";
+
+		private final IProxywiredManageable internalManager;
+
+		/**
+		 * @param internalManager
+		 */
+		public ProxywiredManageableInterceptor(final IProxywiredManageable internalManager) {
+			super();
+			this.internalManager = internalManager;
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public Object invoke(final MethodInvocation invocation) throws Throwable {
+			Object result = null;
+
+			if (this.isMethod1(invocation)) {
+				final LinkedHashMap<String, Object> dependencies = (LinkedHashMap<String, Object>) invocation
+						.getArguments()[0];
+				this.modifyProxywiredDependencies(dependencies);
+				result = null;
+			} else if (this.isMethod2(invocation)) {
+				result = this.viewProxywiredDependencies();
+			} else {
+				result = invocation.proceed();
+			}
+
+			return result;
+		}
+
+		@Override
+		public void modifyProxywiredDependencies(final LinkedHashMap<String, Object> dependencies) {
+			this.internalManager.modifyProxywiredDependencies(dependencies);
+		}
+
+		@Override
+		public Set<String> viewProxywiredDependencies() {
+			return this.internalManager.viewProxywiredDependencies();
+		}
+
+		/**
+		 * Test if the invoked method is the one we want to advice.
+		 * 
+		 * @param invocation
+		 * @return
+		 */
+		protected boolean isMethod1(final MethodInvocation invocation) {
+			final Method method = invocation.getMethod();
+
+			final boolean testName = ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_1.equals(method.getName());
+
+			return testName;
+		}
+
+		/**
+		 * Test if the invoked method is the one we want to advice.
+		 * 
+		 * @param invocation
+		 * @return
+		 */
+		protected boolean isMethod2(final MethodInvocation invocation) {
+			final Method method = invocation.getMethod();
+
+			final boolean testName = ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_2.equals(method.getName());
+
+			return testName;
 		}
 
 	}

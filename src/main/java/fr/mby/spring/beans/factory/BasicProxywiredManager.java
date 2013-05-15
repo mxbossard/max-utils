@@ -21,7 +21,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,12 +68,12 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	@Override
-	public void modifyProxywiredDepencies(final String proxywiredKey, final Set<String> beanNames) {
+	public void modifyProxywiredDepencies(final String proxywiredKey, final LinkedHashSet<String> beanNames) {
 		if (proxywiredKey != null) {
 			final IProxywiredManageable alreadyProxy = this.storage.get(proxywiredKey);
 
 			if (alreadyProxy != null) {
-				final Map<String, Object> dependencies = new HashMap<String, Object>();
+				final LinkedHashMap<String, Object> dependencies = new LinkedHashMap<String, Object>();
 				if (beanNames != null) {
 					for (final String beanName : beanNames) {
 						final Object bean = this.beanFactory.getBean(beanName);

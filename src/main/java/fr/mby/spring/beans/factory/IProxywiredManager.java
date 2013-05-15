@@ -16,7 +16,8 @@
 
 package fr.mby.spring.beans.factory;
 
-import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.springframework.beans.factory.config.DependencyDescriptor;
@@ -30,7 +31,7 @@ public interface IProxywiredManager {
 	Object getProxywiredDependency(DependencyDescriptor descriptor, String beanName, Set<String> autowiredBeanNames,
 			Object target);
 
-	void modifyProxywiredDepencies(String proxywiredKey, Set<String> beanNames);
+	void modifyProxywiredDepencies(String proxywiredKey, LinkedHashSet<String> beanNames);
 
 	Set<String> viewProxywiredDependencies(String proxywiredKey);
 
@@ -38,7 +39,7 @@ public interface IProxywiredManager {
 
 	public interface IProxywiredManageable {
 
-		void modifyProxywiredDependencies(Map<String, Object> dependencies);
+		void modifyProxywiredDependencies(LinkedHashMap<String, Object> dependencies);
 
 		Set<String> viewProxywiredDependencies();
 
