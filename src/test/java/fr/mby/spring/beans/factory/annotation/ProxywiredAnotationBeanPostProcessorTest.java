@@ -62,6 +62,11 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	@Proxywired
 	private ITest iTestSingleProxywired;
 
+	/**
+	 * Test injection and length.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void test1() throws Exception {
 		Assert.assertNotNull("Beans were not autowired !", this.iTestAutowired);
@@ -79,6 +84,11 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertNotNull("Single bean was not proxywired !", this.iTestSingleProxywired);
 	}
 
+	/**
+	 * Test ordering of beans.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void test2() throws Exception {
 		Assert.assertNotNull("Beans were not autowired !", this.iTestAutowired);
@@ -106,6 +116,11 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertEquals("Bad proxywired ordering !", "TestA", this.iTestSingleProxywired.test());
 	}
 
+	/**
+	 * Test ProxywiredManager.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void test3() throws Exception {
 		Assert.assertNotNull("Beans were not proxywired !", this.iTestProxywiredCollection);
@@ -121,6 +136,11 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 				proxywiredDependencies.size());
 	}
 
+	/**
+	 * Test Proxywired modification with ProxywiredManager.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void test4() throws Exception {
 		// Default Proxywiring (all beans)
