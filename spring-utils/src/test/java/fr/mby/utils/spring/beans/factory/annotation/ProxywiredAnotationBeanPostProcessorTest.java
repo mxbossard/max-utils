@@ -34,8 +34,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import fr.mby.utils.common.test.LoadRunner;
 import fr.mby.utils.spring.beans.factory.IProxywiredManager;
-import fr.mby.utils.spring.beans.factory.ITest;
-import fr.mby.utils.spring.beans.factory.annotation.Proxywired;
+import fr.mby.utils.test.ITest;
 
 /**
  * @author Maxime Bossard - 2013
@@ -186,19 +185,20 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	@Test
 	public void loadTest() throws Exception {
 		@SuppressWarnings("unused")
-		LoadRunner<?,?> loadRunner = new LoadRunner<ProxywiredAnotationBeanPostProcessorTest, Void>(this) {
+		final LoadRunner<?, ?> loadRunner = new LoadRunner<ProxywiredAnotationBeanPostProcessorTest, Void>(this) {
+
 			@Override
-			protected Void loadTest(ProxywiredAnotationBeanPostProcessorTest unitTest) throws Exception {
+			protected Void loadTest(final ProxywiredAnotationBeanPostProcessorTest unitTest) throws Exception {
 				unitTest.unitLoadTest();
 				return null;
 			}
 		};
-		
+
 	}
-	
+
 	/**
 	 * We will modify the proxywired been concurrently so it should always have 2 or 3 same beans wired.
-	 *  
+	 * 
 	 * @throws Exception
 	 */
 	protected void unitLoadTest() throws Exception {
@@ -211,7 +211,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 						twoBeanNames);
 
 		this.testSizeAndOrder(this.iTestProxywiredCollection);
-		
+
 		// Modify Proxywiring : 3 beans
 		final LinkedHashSet<String> threeBeanNames = new LinkedHashSet<String>(Arrays.asList("testB", "testC", "testA"));
 		this.proxywiredManager
@@ -221,19 +221,20 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		this.testSizeAndOrder(this.iTestProxywiredCollection);
 	}
-	
-	protected void testSizeAndOrder(Collection<ITest> proxywiredCol) {
+
+	protected void testSizeAndOrder(final Collection<ITest> proxywiredCol) {
 		Assert.assertNotNull("Beans were not proxywired !", proxywiredCol);
-		
+
 		// Test size
-		int size = proxywiredCol.size();
-		boolean testSize = 3 == size || 2 == size;
+		final int size = proxywiredCol.size();
+		final boolean testSize = 3 == size || 2 == size;
 		Assert.assertTrue("Bad proxywired bean count ! size: " + size, testSize);
-		
+
 		// Test ordering
-		Iterator<ITest> iterator = proxywiredCol.iterator();
-		String val1 = iterator.next().test(); String val2 = iterator.next().test();
-		
+		final Iterator<ITest> iterator = proxywiredCol.iterator();
+		final String val1 = iterator.next().test();
+		final String val2 = iterator.next().test();
+
 		if ("TestC".equals(val1)) {
 			Assert.assertEquals("Bad bean ordering : After TestC => TestA !", "TestA", val2);
 		} else if ("TestB".equals(val1)) {
@@ -242,5 +243,5 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 			Assert.fail("We should not found other bean than testC and testB !");
 		}
 	}
-	
+
 }

@@ -35,6 +35,8 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.util.Assert;
 
+import fr.mby.utils.spring.beans.factory.support.IProxywiredFactory;
+
 /**
  * @author Maxime Bossard - 2013
  * 

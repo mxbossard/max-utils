@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.mby.utils.spring.beans.factory;
+package fr.mby.utils.spring.beans.factory.support;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

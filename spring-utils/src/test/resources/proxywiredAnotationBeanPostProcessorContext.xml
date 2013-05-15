@@ -5,7 +5,7 @@
 
 	<bean id="proxywiredManager" class="fr.mby.utils.spring.beans.factory.BasicProxywiredManager">
 		<property name="proxywiredFactory">
-			<bean class="fr.mby.utils.spring.beans.factory.BasicProxywiredFactory" />
+			<bean class="fr.mby.utils.spring.beans.factory.support.BasicProxywiredFactory" />
 		</property>
 	</bean>
 
@@ -13,8 +13,8 @@
 		<property name="proxywiredManager" ref="proxywiredManager" />
 	</bean>
 	
-	<bean id="testA" class="fr.mby.utils.spring.beans.factory.TestA" />
-	<bean id="testB" class="fr.mby.utils.spring.beans.factory.TestB" />
-	<bean id="testC" class="fr.mby.utils.spring.beans.factory.TestC" />
+	<bean id="testA" class="fr.mby.utils.test.TestA" />
+	<bean id="testB" class="fr.mby.utils.test.TestB" />
+	<bean id="testC" class="fr.mby.utils.test.TestC" />
 
 </beans>
