@@ -5,6 +5,7 @@
 		<groupId>fr.mby.maven</groupId>
 		<artifactId>basic-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../maven-parents/basic-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-utils</artifactId>
 

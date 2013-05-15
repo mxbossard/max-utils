@@ -4,6 +4,7 @@
     <artifactId>basic-parent</artifactId>
     <groupId>fr.mby.maven</groupId>
     <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../maven-parents/basic-parent/pom.xml</relativePath>
   </parent>
   <artifactId>common-utils</artifactId>
   <groupId>fr.mby.utils</groupId>

@@ -7,9 +7,9 @@
 
 	<packaging>pom</packaging>
 	<modules>
-		<module>spring-utils</module>
-		<module>web-utils</module>
 		<module>maven-parents</module>
 		<module>common-utils</module>
+		<module>spring-utils</module>
+		<module>web-utils</module>
 	</modules>
 </project>
