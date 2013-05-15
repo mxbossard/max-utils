@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.mby.spring.beans.factory.annotation;
+package fr.mby.utils.spring.beans.factory.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

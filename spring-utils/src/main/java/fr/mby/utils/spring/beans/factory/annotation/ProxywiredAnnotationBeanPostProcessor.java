@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.mby.spring.beans.factory.annotation;
+package fr.mby.utils.spring.beans.factory.annotation;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -38,7 +38,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.util.Assert;
 
-import fr.mby.spring.beans.factory.IProxywiredManager;
+import fr.mby.utils.spring.beans.factory.IProxywiredManager;
 
 /**
  * @author Maxime BOSSARD.

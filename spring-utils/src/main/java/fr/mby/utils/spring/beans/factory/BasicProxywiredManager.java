@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.mby.spring.beans.factory;
+package fr.mby.utils.spring.beans.factory;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package fr.mby.spring.beans.factory;
+package fr.mby.utils.spring.beans.factory;
 
 import org.springframework.beans.factory.config.DependencyDescriptor;
 
-import fr.mby.spring.beans.factory.IProxywiredManager.IProxywiredManageable;
+import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredManageable;
 
 /**
  * @author Maxime BOSSARD.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.mby.spring.beans.factory;
+package fr.mby.utils.spring.beans.factory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 
-import fr.mby.spring.beans.factory.IProxywiredManager.IProxywiredManageable;
+import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredManageable;
 
 /**
  * @author Maxime BOSSARD.
@@ -282,11 +282,13 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 		@Override
 		public Object getTarget() throws Exception {
-			while (this.lock) {
-				Thread.sleep(10);
+			synchronized (this) {
+				while (this.lock) {
+					this.wait(10);
+				}
+				
+				return this.cachedProxy;
 			}
-
-			return this.cachedProxy;
 		}
 
 		@Override
@@ -296,10 +298,13 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 		@Override
 		public void modifyProxywiredDependencies(final LinkedHashMap<String, Object> dependencies) {
-			this.lock = true;
-			this.backingStore = this.modifyBackingStore(dependencies);
-			this.cachedProxy = this.buildCachedProxy(this.backingStore);
-			this.lock = false;
+			synchronized (this) {
+				this.lock = true;
+				this.backingStore = this.modifyBackingStore(dependencies);
+				this.cachedProxy = this.buildCachedProxy(this.backingStore);
+				this.lock = false;
+				this.notifyAll();
+			}
 		}
 
 		/**

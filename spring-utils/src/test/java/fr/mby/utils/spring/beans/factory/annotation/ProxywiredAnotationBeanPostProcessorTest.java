@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package fr.mby.spring.beans.factory.annotation;
+package fr.mby.utils.spring.beans.factory.annotation;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,8 +32,10 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import fr.mby.spring.beans.factory.IProxywiredManager;
-import fr.mby.spring.beans.factory.ITest;
+import fr.mby.utils.common.test.LoadRunner;
+import fr.mby.utils.spring.beans.factory.IProxywiredManager;
+import fr.mby.utils.spring.beans.factory.ITest;
+import fr.mby.utils.spring.beans.factory.annotation.Proxywired;
 
 /**
  * @author Maxime Bossard - 2013
@@ -131,7 +133,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertEquals("Bad count of available dependencies !", 3, availableDependencies.size());
 
 		final Set<String> proxywiredDependencies = this.proxywiredManager
-				.viewProxywiredDependencies("fr.mby.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection");
+				.viewProxywiredDependencies("fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection");
 		Assert.assertEquals("Bad default configuration of proxywired dependencies !", availableDependencies.size(),
 				proxywiredDependencies.size());
 	}
@@ -151,7 +153,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		final LinkedHashSet<String> beanNames = new LinkedHashSet<String>(Arrays.asList("testC", "testA"));
 		this.proxywiredManager
 				.modifyProxywiredDepencies(
-						"fr.mby.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection",
+						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection",
 						beanNames);
 
 		// Test viewAllDependencies
@@ -161,7 +163,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		// Test viewProxywiredDependencies
 		final Set<String> proxywiredDependencies = this.proxywiredManager
-				.viewProxywiredDependencies("fr.mby.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection");
+				.viewProxywiredDependencies("fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection");
 		Assert.assertNotNull("Proxywired dependencies null !", proxywiredDependencies);
 		Assert.assertEquals("Bad default configuration of proxywired dependencies !", 2, proxywiredDependencies.size());
 		final Iterator<String> iterator3 = proxywiredDependencies.iterator();
@@ -176,4 +178,69 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertEquals("Bad proxywired ordering !", "TestA", iterator4.next().test());
 	}
 
+	/**
+	 * Test Proxywired modification in mutithreaded environment.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void loadTest() throws Exception {
+		@SuppressWarnings("unused")
+		LoadRunner<?,?> loadRunner = new LoadRunner<ProxywiredAnotationBeanPostProcessorTest, Void>(this) {
+			@Override
+			protected Void loadTest(ProxywiredAnotationBeanPostProcessorTest unitTest) throws Exception {
+				unitTest.unitLoadTest();
+				return null;
+			}
+		};
+		
+	}
+	
+	/**
+	 * We will modify the proxywired been concurrently so it should always have 2 or 3 same beans wired.
+	 *  
+	 * @throws Exception
+	 */
+	protected void unitLoadTest() throws Exception {
+
+		// Modify Proxywiring : 2 beans
+		final LinkedHashSet<String> twoBeanNames = new LinkedHashSet<String>(Arrays.asList("testC", "testA"));
+		this.proxywiredManager
+				.modifyProxywiredDepencies(
+						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection",
+						twoBeanNames);
+
+		this.testSizeAndOrder(this.iTestProxywiredCollection);
+		
+		// Modify Proxywiring : 3 beans
+		final LinkedHashSet<String> threeBeanNames = new LinkedHashSet<String>(Arrays.asList("testB", "testC", "testA"));
+		this.proxywiredManager
+				.modifyProxywiredDepencies(
+						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection",
+						threeBeanNames);
+
+		this.testSizeAndOrder(this.iTestProxywiredCollection);
+	}
+	
+	protected void testSizeAndOrder(Collection<ITest> proxywiredCol) {
+		Assert.assertNotNull("Beans were not proxywired !", proxywiredCol);
+		
+		// Test size
+		int size = proxywiredCol.size();
+		boolean testSize = 3 == size || 2 == size;
+		Assert.assertTrue("Bad proxywired bean count ! size: " + size, testSize);
+		
+		// Test ordering
+		Iterator<ITest> iterator = proxywiredCol.iterator();
+		String val1 = iterator.next().test(); String val2 = iterator.next().test();
+		
+		if ("TestC".equals(val1)) {
+			Assert.assertEquals("Bad bean ordering : After TestC => TestA !", "TestA", val2);
+		} else if ("TestB".equals(val1)) {
+			Assert.assertEquals("Bad bean ordering : After TestB => TestC !", "TestC", val2);
+		} else {
+			Assert.fail("We should not found other bean than testC and testB !");
+		}
+	}
+	
 }

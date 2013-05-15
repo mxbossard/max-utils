@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package fr.mby.spring.beans.factory;
+package fr.mby.utils.spring.beans.factory;
 
 /**
  * @author Maxime Bossard - 2013
  * 
  */
-public class TestA implements ITest {
+public class TestB implements ITest {
 
 	@Override
 	public String test() {
-		return "TestA";
+		return "TestB";
 	}
 
 }
