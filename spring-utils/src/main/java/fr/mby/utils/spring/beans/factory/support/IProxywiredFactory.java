@@ -18,7 +18,7 @@ package fr.mby.utils.spring.beans.factory.support;
 
 import org.springframework.beans.factory.config.DependencyDescriptor;
 
-import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredManageable;
+import fr.mby.utils.spring.beans.factory.IProxywiredManager.IManageableProxywired;
 
 /**
  * @author Maxime BOSSARD.
@@ -26,6 +26,6 @@ import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredManageabl
  */
 public interface IProxywiredFactory {
 
-	IProxywiredManageable proxy(DependencyDescriptor descriptor, Object target);
+	IManageableProxywired proxy(DependencyDescriptor descriptor, Object target);
 
 }

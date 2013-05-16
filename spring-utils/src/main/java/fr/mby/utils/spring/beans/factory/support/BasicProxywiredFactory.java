@@ -33,7 +33,7 @@ import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 
-import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredManageable;
+import fr.mby.utils.spring.beans.factory.IProxywiredManager.IManageableProxywired;
 
 /**
  * @author Maxime BOSSARD - 2013.
@@ -43,8 +43,8 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public IProxywiredManageable proxy(final DependencyDescriptor descriptor, final Object target) {
-		final IProxywiredManageable result;
+	public IManageableProxywired proxy(final DependencyDescriptor descriptor, final Object target) {
+		final IManageableProxywired result;
 
 		final Class<?> dependencyType = descriptor.getDependencyType();
 
@@ -72,7 +72,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IProxywiredManageable proxySingleDependency(final Object target, final Class<?> type) {
+	protected IManageableProxywired proxySingleDependency(final Object target, final Class<?> type) {
 		final TargetSource targetSource = new ProxywiredBean(type, target);
 
 		return this.proxywire(targetSource);
@@ -84,7 +84,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IProxywiredManageable proxyDependencyList(final List<Object> target) {
+	protected IManageableProxywired proxyDependencyList(final List<Object> target) {
 		final TargetSource targetSource = new ProxywiredList(List.class, target);
 
 		return this.proxywire(targetSource);
@@ -96,7 +96,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IProxywiredManageable proxyDependencyCollection(final Collection<Object> target,
+	protected IManageableProxywired proxyDependencyCollection(final Collection<Object> target,
 			final Class<?> dependencyType) {
 		final TargetSource targetSource = new ProxywiredCollection(dependencyType, target);
 
@@ -109,19 +109,19 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IProxywiredManageable proxyDependencyMap(final Map<String, Object> target) {
+	protected IManageableProxywired proxyDependencyMap(final Map<String, Object> target) {
 		final TargetSource targetSource = new ProxywiredMap(Map.class, target);
 
 		return this.proxywire(targetSource);
 	}
 
-	protected IProxywiredManageable proxywire(final TargetSource targetSource) {
-		final Class<?>[] proxtyInterfaces = new Class[]{targetSource.getTargetClass(), IProxywiredManageable.class};
+	protected IManageableProxywired proxywire(final TargetSource targetSource) {
+		final Class<?>[] proxtyInterfaces = new Class[]{targetSource.getTargetClass(), IManageableProxywired.class};
 		final ProxyFactory proxyFactory = new ProxyFactory(proxtyInterfaces);
-		proxyFactory.addAdvice(new ProxywiredManageableInterceptor((IProxywiredManageable) targetSource));
+		proxyFactory.addAdvice(new ProxywiredManageableInterceptor((IManageableProxywired) targetSource));
 		proxyFactory.setTargetSource(targetSource);
 
-		return (IProxywiredManageable) proxyFactory.getProxy();
+		return (IManageableProxywired) proxyFactory.getProxy();
 	}
 
 	private class ProxywiredBean extends ProxywiredStruct<Object> {
@@ -238,7 +238,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	}
 
-	private abstract class ProxywiredStruct<T> implements TargetSource, IProxywiredManageable {
+	private abstract class ProxywiredStruct<T> implements TargetSource, IManageableProxywired {
 
 		private final Class<?> type;
 
@@ -324,18 +324,18 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	}
 
-	private class ProxywiredManageableInterceptor implements MethodInterceptor, IProxywiredManageable {
+	private class ProxywiredManageableInterceptor implements MethodInterceptor, IManageableProxywired {
 
 		private static final String INTERCEPTED_METHOD_NAME_1 = "modifyProxywiredDependencies";
 
 		private static final String INTERCEPTED_METHOD_NAME_2 = "viewProxywiredDependencies";
 
-		private final IProxywiredManageable internalManager;
+		private final IManageableProxywired internalManager;
 
 		/**
 		 * @param internalManager
 		 */
-		public ProxywiredManageableInterceptor(final IProxywiredManageable internalManager) {
+		public ProxywiredManageableInterceptor(final IManageableProxywired internalManager) {
 			super();
 			this.internalManager = internalManager;
 		}

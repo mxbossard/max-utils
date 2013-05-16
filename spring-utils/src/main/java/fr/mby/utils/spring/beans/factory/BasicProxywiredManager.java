@@ -47,17 +47,17 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 
 	private IProxywiredFactory proxywiredFactory;
 
-	private final Map<String, IProxywiredManageable> storage = new ConcurrentHashMap<String, IProxywiredManageable>(16);
+	private final Map<String, IManageableProxywired> storage = new ConcurrentHashMap<String, IManageableProxywired>(16);
 
 	@Override
 	public Object getProxywiredDependency(final DependencyDescriptor descriptor, final String beanName,
 			final Set<String> autowiredBeanNames, final Object target) {
-		final IProxywiredManageable result;
+		final IManageableProxywired result;
 
 		// final Class<?> type = this.getBeanType(descriptor, autowiredBeanNames);
 		final String proxywiredKey = this.getProxywiredKey(descriptor, beanName);
 
-		final IProxywiredManageable alreadyProxy = this.storage.get(proxywiredKey);
+		final IManageableProxywired alreadyProxy = this.storage.get(proxywiredKey);
 
 		if (alreadyProxy == null) {
 			result = this.proxywiredFactory.proxy(descriptor, target);
@@ -72,7 +72,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	@Override
 	public void modifyProxywiredDepencies(final String proxywiredKey, final LinkedHashSet<String> beanNames) {
 		if (proxywiredKey != null) {
-			final IProxywiredManageable alreadyProxy = this.storage.get(proxywiredKey);
+			final IManageableProxywired alreadyProxy = this.storage.get(proxywiredKey);
 
 			if (alreadyProxy != null) {
 				final LinkedHashMap<String, Object> dependencies = new LinkedHashMap<String, Object>();
@@ -94,7 +94,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		Set<String> view = Collections.emptySet();
 
 		if (proxywiredKey != null) {
-			final IProxywiredManageable alreadyProxy = this.storage.get(proxywiredKey);
+			final IManageableProxywired alreadyProxy = this.storage.get(proxywiredKey);
 			if (alreadyProxy != null) {
 				view = alreadyProxy.viewProxywiredDependencies();
 			}

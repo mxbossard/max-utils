@@ -67,12 +67,12 @@ public interface IProxywiredManager {
 	Set<String> viewAllDependencies(Class<?> type);
 
 	/**
-	 * Represent a Manageable Proxywired dependency.
+	 * Represent a Manageable dependency.
 	 * 
 	 * @author Maxime Bossard - 2013.
 	 * 
 	 */
-	public interface IProxywiredManageable {
+	public interface IManageableProxywired {
 
 		/**
 		 * Modify the elements inside the Proxywired dependency.
