@@ -27,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -63,6 +64,10 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	@Proxywired
 	private ITest iTestSingleProxywired;
 
+	@Proxywired
+	@Qualifier("testB")
+	private ITest iTestQualifiedSingleProxywired;
+
 	/**
 	 * Test injection and length.
 	 * 
@@ -83,6 +88,8 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertEquals("Bad proxywired bean count !", 3, this.iTestProxywiredSet.size());
 
 		Assert.assertNotNull("Single bean was not proxywired !", this.iTestSingleProxywired);
+
+		Assert.assertNotNull("Single bean was not proxywired !", this.iTestQualifiedSingleProxywired);
 	}
 
 	/**
@@ -115,6 +122,9 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		Assert.assertNotNull("Single bean was not proxywired !", this.iTestSingleProxywired);
 		Assert.assertEquals("Bad proxywired ordering !", "TestA", this.iTestSingleProxywired.test());
+
+		Assert.assertNotNull("Single bean was not proxywired !", this.iTestQualifiedSingleProxywired);
+		Assert.assertEquals("Bad proxywired ordering !", "TestB", this.iTestQualifiedSingleProxywired.test());
 	}
 
 	/**
@@ -175,6 +185,44 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		final Iterator<ITest> iterator4 = this.iTestProxywiredCollection.iterator();
 		Assert.assertEquals("Bad proxywired ordering !", "TestC", iterator4.next().test());
 		Assert.assertEquals("Bad proxywired ordering !", "TestA", iterator4.next().test());
+	}
+
+	/**
+	 * Test Single Proxywired modification with ProxywiredManager.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void test5() throws Exception {
+		// Default Proxywiring (all beans)
+		Assert.assertNotNull("Beans were not proxywired !", this.iTestSingleProxywired);
+		Assert.assertEquals("Bad proxywired bean !", "TestA", this.iTestSingleProxywired.test());
+
+		// Modify Proxywiring
+		final LinkedHashSet<String> beanNames = new LinkedHashSet<String>(Arrays.asList("testC", "testA"));
+		this.proxywiredManager
+				.modifyProxywiredDepencies(
+						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestSingleProxywired",
+						beanNames);
+
+		// Test viewAllDependencies
+		final Set<String> availableDependencies = this.proxywiredManager.viewAllDependencies(ITest.class);
+		Assert.assertNotNull("Available dependencies null !", availableDependencies);
+		Assert.assertEquals("Bad count of available dependencies !", 3, availableDependencies.size());
+
+		// Test viewProxywiredDependencies
+		final Set<String> proxywiredDependencies = this.proxywiredManager
+				.viewProxywiredDependencies("fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestSingleProxywired");
+		Assert.assertNotNull("Proxywired dependencies null !", proxywiredDependencies);
+		Assert.assertEquals("Bad default configuration of proxywired dependencies !", 2, proxywiredDependencies.size());
+		final Iterator<String> iterator3 = proxywiredDependencies.iterator();
+		Assert.assertEquals("Bad availableDependencies ordering !", "testC", iterator3.next());
+		Assert.assertEquals("Bad availableDependencies ordering !", "testA", iterator3.next());
+
+		// Test modified Proywiring
+		Assert.assertNotNull("Beans were not proxywired !", this.iTestSingleProxywired);
+		Assert.assertEquals("Bad proxywired bean !", "TestC", this.iTestSingleProxywired.test());
+
 	}
 
 	/**
