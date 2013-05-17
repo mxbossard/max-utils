@@ -47,7 +47,7 @@ public abstract class LoadRunner<T, V> {
     /** Logger. */
     private static final Logger LOG = LogManager.getLogger(LoadRunner.class);
 
-    /** Message d'erreur en cas d'exception jetée par un test. */
+    /** Message d'erreur en cas d'exception jetee par un test. */
     private static final String MESSAGE_EXCEPTION_DURING_TEST = "----- Error during load test. -----";
 
     /** Message indicating a load test success. */
@@ -94,7 +94,7 @@ public abstract class LoadRunner<T, V> {
     
     /** 
      * Constructeur with default params. 
-     * 10,000 exectutions with 100 threads in thread pool.
+     * 10,000 exectutions with 50 threads in thread pool.
      * 
      * @throws Exception 
      */
