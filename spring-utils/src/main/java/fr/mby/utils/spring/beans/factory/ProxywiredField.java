@@ -17,6 +17,7 @@
 package fr.mby.utils.spring.beans.factory;
 
 import java.lang.reflect.Field;
+import java.util.prefs.Preferences;
 
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.util.Assert;
@@ -29,7 +30,7 @@ import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredIdentifie
  */
 public class ProxywiredField implements IProxywiredIdentifier {
 
-	private final String key;
+	private final String nodePathName;
 
 	protected ProxywiredField(final DependencyDescriptor descriptor, final String wiredClassName) {
 		super();
@@ -41,7 +42,7 @@ public class ProxywiredField implements IProxywiredIdentifier {
 
 		Assert.hasText(wiredClassName, "Wired class name cannot be found !");
 
-		this.key = wiredClassName + "/__field__/" + fieldName;
+		this.nodePathName = wiredClassName.replaceAll(".", "/") + "/__field__/" + fieldName;
 	}
 
 	public ProxywiredField(final Class<?> wiredClass, final String fieldName) {
@@ -50,12 +51,12 @@ public class ProxywiredField implements IProxywiredIdentifier {
 		Assert.notNull(wiredClass, "No Wired class provided !");
 		Assert.hasText(fieldName, "No Field name provided !");
 
-		this.key = wiredClass.getName() + "/__field__/" + fieldName;
+		this.nodePathName = wiredClass.getName().replaceAll(".", "/") + "/__field__/" + fieldName;
 	}
 
 	@Override
-	public String getKey() {
-		return this.key;
+	public Preferences getPreferencesNode(final Preferences proxywiredPreferences) {
+		return proxywiredPreferences.node(this.nodePathName);
 	}
 
 }

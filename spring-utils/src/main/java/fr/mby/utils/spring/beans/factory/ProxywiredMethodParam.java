@@ -16,6 +16,8 @@
 
 package fr.mby.utils.spring.beans.factory;
 
+import java.util.prefs.Preferences;
+
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
@@ -28,7 +30,7 @@ import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredIdentifie
  */
 public class ProxywiredMethodParam implements IProxywiredIdentifier {
 
-	private final String key;
+	private final String nodePathName;
 
 	protected ProxywiredMethodParam(final DependencyDescriptor descriptor, final String wiredClassName) {
 		super();
@@ -41,7 +43,7 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 
 		Assert.hasText(wiredClassName, "Wired class name cannot be found !");
 
-		this.key = wiredClassName + "/" + methodName + "/" + paramName;
+		this.nodePathName = wiredClassName.replaceAll(".", "/") + "/" + methodName + "/" + paramName;
 	}
 
 	public ProxywiredMethodParam(final Class<?> wiredClass, final String methodName, final String paramName) {
@@ -51,12 +53,12 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 		Assert.hasText(methodName, "No Method name provided !");
 		Assert.hasText(paramName, "No Parameter name provided !");
 
-		this.key = wiredClass.getName() + "/" + methodName + "/" + paramName;
+		this.nodePathName = wiredClass.getName().replaceAll(".", "/") + "/" + methodName + "/" + paramName;
 	}
 
 	@Override
-	public String getKey() {
-		return this.key;
+	public Preferences getPreferencesNode(final Preferences proxywiredPreferences) {
+		return proxywiredPreferences.node(this.nodePathName);
 	}
 
 }

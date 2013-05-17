@@ -55,6 +55,8 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	/** Logger. */
 	private static final Logger LOG = LogManager.getLogger(BasicProxywiredManager.class);
 
+	private static final String PROXYWIRED_PREFS_PATH = "ProxywiredPreferences";
+
 	private static final String WIRING_PREFS_SEPARATOR = ",";
 
 	private ConfigurableListableBeanFactory beanFactory;
@@ -63,7 +65,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 
 	private IProxywiredPreferencesFactory proxywiredPreferencesFactory;
 
-	private Preferences prefs;
+	private Preferences proxywiredPrefs;
 
 	private final Map<String, IManageableProxywired> byIdStorage = new ConcurrentHashMap<String, IManageableProxywired>();
 
@@ -186,12 +188,15 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.proxywiredFactory, "No IProxywiredFactory configured !");
 
+		final Preferences prefs;
 		if (this.proxywiredPreferencesFactory != null) {
-			this.prefs = this.proxywiredPreferencesFactory.buildPreferences();
+			prefs = this.proxywiredPreferencesFactory.buildPreferences();
 		} else {
 			// Default preferences
-			this.prefs = Preferences.systemRoot();
+			prefs = Preferences.systemRoot();
 		}
+
+		this.proxywiredPrefs = prefs.node(BasicProxywiredManager.PROXYWIRED_PREFS_PATH);
 	}
 
 	/**
@@ -227,7 +232,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		storedByTypes.add(result);
 
 		// Try to load wiring preferences
-		final String prefValue = this.prefs.get(id.getKey(), null);
+		final String prefValue = this.proxywiredPrefs.get(id.getKey(), null);
 		if (prefValue != null) {
 			final String[] splittedValue = StringUtils.split(prefValue, BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
 			final List<String> wiringPref = Arrays.asList(splittedValue);
@@ -253,9 +258,9 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		Assert.notNull(id, "Cannot found valid identifier for this dependency !");
 		final String value = StringUtils.collectionToDelimitedString(dependencies.keySet(),
 				BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
-		this.prefs.put(id.getKey(), value);
+		this.proxywiredPrefs.put(id.getKey(), value);
 		try {
-			this.prefs.flush();
+			this.proxywiredPrefs.flush();
 		} catch (final BackingStoreException e) {
 			BasicProxywiredManager.LOG.error("Preferences were not flushed !", e);
 		}
