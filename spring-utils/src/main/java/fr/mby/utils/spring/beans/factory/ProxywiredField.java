@@ -42,7 +42,7 @@ public class ProxywiredField implements IProxywiredIdentifier {
 
 		Assert.hasText(wiredClassName, "Wired class name cannot be found !");
 
-		this.nodePathName = wiredClassName.replaceAll(".", "/") + "/__field__/" + fieldName;
+		this.nodePathName = wiredClassName.replaceAll("\\.", "/") + "/__field__/" + fieldName;
 	}
 
 	public ProxywiredField(final Class<?> wiredClass, final String fieldName) {
@@ -51,12 +51,37 @@ public class ProxywiredField implements IProxywiredIdentifier {
 		Assert.notNull(wiredClass, "No Wired class provided !");
 		Assert.hasText(fieldName, "No Field name provided !");
 
-		this.nodePathName = wiredClass.getName().replaceAll(".", "/") + "/__field__/" + fieldName;
+		this.nodePathName = wiredClass.getName().replaceAll("\\.", "/") + "/__field__/" + fieldName;
 	}
 
 	@Override
 	public Preferences getPreferencesNode(final Preferences proxywiredPreferences) {
 		return proxywiredPreferences.node(this.nodePathName);
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((nodePathName == null) ? 0 : nodePathName.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ProxywiredField other = (ProxywiredField) obj;
+		if (nodePathName == null) {
+			if (other.nodePathName != null)
+				return false;
+		} else if (!nodePathName.equals(other.nodePathName))
+			return false;
+		return true;
 	}
 
 }

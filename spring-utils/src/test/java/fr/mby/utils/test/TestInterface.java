@@ -20,7 +20,7 @@ package fr.mby.utils.test;
  * @author Maxime Bossard - 2013
  * 
  */
-public interface ITest {
+public interface TestInterface {
 
 	String test();
 

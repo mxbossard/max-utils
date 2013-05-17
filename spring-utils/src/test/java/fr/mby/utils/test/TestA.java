@@ -20,7 +20,7 @@ package fr.mby.utils.test;
  * @author Maxime Bossard - 2013
  * 
  */
-public class TestA implements ITest {
+public class TestA implements TestInterface {
 
 	@Override
 	public String test() {

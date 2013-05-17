@@ -37,6 +37,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
@@ -50,12 +51,14 @@ import fr.mby.utils.spring.beans.factory.support.IProxywiredFactory;
  * @author Maxime Bossard - 2013
  * 
  */
-public class BasicProxywiredManager implements IProxywiredManager, InitializingBean, BeanFactoryAware {
+public class BasicProxywiredManager implements IProxywiredManager, InitializingBean, DisposableBean, BeanFactoryAware {
 
 	/** Logger. */
 	private static final Logger LOG = LogManager.getLogger(BasicProxywiredManager.class);
 
 	private static final String PROXYWIRED_PREFS_PATH = "ProxywiredPreferences";
+	
+	private static final String WIRED_BEANS_PREF_KEY = "wired-beans";
 
 	private static final String WIRING_PREFS_SEPARATOR = ",";
 
@@ -67,25 +70,25 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 
 	private Preferences proxywiredPrefs;
 
-	private final Map<String, IManageableProxywired> byIdStorage = new ConcurrentHashMap<String, IManageableProxywired>();
-
-	private final Map<IManageableProxywired, IProxywiredIdentifier> idStorage = new ConcurrentHashMap<IManageableProxywired, IProxywiredIdentifier>();
+	private final Map<IProxywiredIdentifier, IManageableProxywired> byIdStorage = new ConcurrentHashMap<IProxywiredIdentifier, IManageableProxywired>();
 
 	private final Map<Class<?>, Collection<IManageableProxywired>> byTypeStorage = new ConcurrentHashMap<Class<?>, Collection<IManageableProxywired>>();
 
+	private boolean flushPreferencesOnModification = true;
+	
 	@Override
 	public Object getProxywiredDependency(final DependencyDescriptor descriptor, final String beanName,
 			final Set<String> autowiredBeanNames, final Object target) {
 		final IManageableProxywired result;
 
 		// final Class<?> type = this.getBeanType(descriptor, autowiredBeanNames);
-		final IProxywiredIdentifier id = this.buildIdentifier(descriptor, beanName);
+		final IProxywiredIdentifier identifier = this.buildIdentifier(descriptor, beanName);
 
 		// Try to find proxywired element in storage
-		final IManageableProxywired alreadyProxy = this.byIdStorage.get(id.getKey());
+		final IManageableProxywired alreadyProxy = this.byIdStorage.get(identifier);
 
 		if (alreadyProxy == null) {
-			result = this.initializeProxywiredDependency(descriptor, target, id, autowiredBeanNames);
+			result = this.initializeProxywiredDependency(descriptor, target, identifier, autowiredBeanNames);
 		} else {
 			result = alreadyProxy;
 		}
@@ -94,13 +97,10 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	@Override
-	public void modifyProxywiredDependencies(final IProxywiredIdentifier id, final LinkedHashSet<String> beanNames) {
-		Assert.notNull(id, "No IProxywiredIdentifier provided !");
+	public void modifyProxywiredDependencies(final IProxywiredIdentifier identifier, final LinkedHashSet<String> beanNames) {
+		Assert.notNull(identifier, "No IProxywiredIdentifier provided !");
 
-		final String proxywiredKey = id.getKey();
-		Assert.hasText(proxywiredKey, "IProxywiredIdentifier cannot build a valid key !");
-
-		final IManageableProxywired alreadyProxy = this.byIdStorage.get(proxywiredKey);
+		final IManageableProxywired alreadyProxy = this.byIdStorage.get(identifier);
 
 		if (alreadyProxy != null) {
 			final LinkedHashMap<String, Object> dependencies = new LinkedHashMap<String, Object>();
@@ -147,15 +147,14 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	@Override
-	public Set<String> viewProxywiredDependencies(final IProxywiredIdentifier id) {
+	public Set<String> viewProxywiredDependencies(final IProxywiredIdentifier identifier) {
+		Assert.notNull(identifier, "No IProxywiredIdentifier provided !");
+		
 		Set<String> view = Collections.emptySet();
-		final String proxywiredKey = id.getKey();
 
-		if (proxywiredKey != null) {
-			final IManageableProxywired alreadyProxy = this.byIdStorage.get(proxywiredKey);
-			if (alreadyProxy != null) {
-				view = alreadyProxy.viewProxywiredDependencies();
-			}
+		final IManageableProxywired alreadyProxy = this.byIdStorage.get(identifier);
+		if (alreadyProxy != null) {
+			view = alreadyProxy.viewProxywiredDependencies();
 		}
 
 		return view;
@@ -185,12 +184,13 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	@Override
+	@SuppressWarnings("static-access")
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.proxywiredFactory, "No IProxywiredFactory configured !");
 
 		final Preferences prefs;
 		if (this.proxywiredPreferencesFactory != null) {
-			prefs = this.proxywiredPreferencesFactory.buildPreferences();
+			prefs = this.proxywiredPreferencesFactory.buildPreferences().systemRoot();
 		} else {
 			// Default preferences
 			prefs = Preferences.systemRoot();
@@ -198,28 +198,30 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 
 		this.proxywiredPrefs = prefs.node(BasicProxywiredManager.PROXYWIRED_PREFS_PATH);
 	}
+	
+	@Override
+	public void destroy() throws Exception {
+		this.proxywiredPrefs.flush();
+	}
 
 	/**
 	 * Initialize a proxywired dependency. Build it, register it storages, and configure it with prefs.
 	 * 
 	 * @param descriptor
 	 * @param target
-	 * @param id
+	 * @param identifier
 	 * @param autowiredBeanNames
 	 * @return
 	 */
 	protected IManageableProxywired initializeProxywiredDependency(final DependencyDescriptor descriptor,
-			final Object target, final IProxywiredIdentifier id, final Set<String> autowiredBeanNames) {
+			final Object target, final IProxywiredIdentifier identifier, final Set<String> autowiredBeanNames) {
 		final IManageableProxywired result;
 
 		// Build Proxywired dependency
-		result = this.proxywiredFactory.proxy(descriptor, target);
+		result = this.proxywiredFactory.proxy(descriptor, identifier, target);
 
 		// Store it in "By Id storage"
-		this.byIdStorage.put(id.getKey(), result);
-
-		// Store it in "Id storage"
-		this.idStorage.put(result, id);
+		this.byIdStorage.put(identifier, result);
 
 		// Store it in "By Type storage"
 		final Class<?> dependencyType = this.getBeanType(descriptor, autowiredBeanNames);
@@ -232,14 +234,15 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		storedByTypes.add(result);
 
 		// Try to load wiring preferences
-		final String prefValue = this.proxywiredPrefs.get(id.getKey(), null);
-		if (prefValue != null) {
-			final String[] splittedValue = StringUtils.split(prefValue, BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
+		final Preferences prefsNode = identifier.getPreferencesNode(proxywiredPrefs);
+		final String wiredBeansPrefValue = prefsNode.get(BasicProxywiredManager.WIRED_BEANS_PREF_KEY, null);
+		if (wiredBeansPrefValue != null) {
+			final String[] splittedValue = StringUtils.split(wiredBeansPrefValue, BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
 			final List<String> wiringPref = Arrays.asList(splittedValue);
 			final LinkedHashSet<String> beanNames = new LinkedHashSet<String>(wiringPref);
 
 			// Initialize with prefs
-			this.modifyProxywiredDependencies(id, beanNames);
+			this.modifyProxywiredDependencies(identifier, beanNames);
 		}
 		return result;
 	}
@@ -254,19 +257,36 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	protected void modifyDependency(final LinkedHashMap<String, Object> dependencies,
 			final IManageableProxywired dependencyToModify) {
 		// Update preferences
-		final IProxywiredIdentifier id = this.idStorage.get(dependencyToModify);
-		Assert.notNull(id, "Cannot found valid identifier for this dependency !");
-		final String value = StringUtils.collectionToDelimitedString(dependencies.keySet(),
-				BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
-		this.proxywiredPrefs.put(id.getKey(), value);
-		try {
-			this.proxywiredPrefs.flush();
-		} catch (final BackingStoreException e) {
-			BasicProxywiredManager.LOG.error("Preferences were not flushed !", e);
-		}
+		this.updateWiringPreferences(dependencies, dependencyToModify);
 
 		// Modify dependency
 		dependencyToModify.modifyProxywiredDependencies(dependencies);
+	}
+
+	/**
+	 * Update the wiring preference.
+	 * 
+	 * @param dependencies
+	 * @param dependencyToModify
+	 */
+	protected void updateWiringPreferences(final LinkedHashMap<String, Object> dependencies,
+			final IManageableProxywired dependencyToModify) {
+		final IProxywiredIdentifier identifier = dependencyToModify.getIdentifier();
+		// Internal method => Identifier cannot be null here !
+		Assert.notNull(identifier, "Cannot found valid identifier for this dependency !");
+
+		final Preferences prefsNode = identifier.getPreferencesNode(proxywiredPrefs);
+		final String value = StringUtils.collectionToDelimitedString(dependencies.keySet(),
+				BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
+		prefsNode.put(WIRED_BEANS_PREF_KEY, value);
+
+		if (this.flushPreferencesOnModification) {
+			try {
+				prefsNode.flush();
+			} catch (final BackingStoreException e) {
+				BasicProxywiredManager.LOG.error("Preferences were not flushed !", e);
+			}
+		}
 	}
 
 	/**
@@ -351,6 +371,16 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	 */
 	public void setProxywiredPreferencesFactory(final IProxywiredPreferencesFactory proxywiredPreferencesFactory) {
 		this.proxywiredPreferencesFactory = proxywiredPreferencesFactory;
+	}
+
+	/**
+	 * Setter of flushPreferencesOnModification.
+	 * 
+	 * @param flushPreferencesOnModification
+	 *            the flushPreferencesOnModification to set
+	 */
+	public void setFlushPreferencesOnModification(boolean flushPreferencesOnModification) {
+		this.flushPreferencesOnModification = flushPreferencesOnModification;
 	}
 
 }

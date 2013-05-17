@@ -17,4 +17,11 @@
 	<bean id="testB" class="fr.mby.utils.test.TestB" />
 	<bean id="testC" class="fr.mby.utils.test.TestC" />
 
+	<bean id="abstractB" class="fr.mby.utils.test.AbstractB" />
+	
+	<bean id="concreatA" class="fr.mby.utils.test.ConcreatA" />
+	<bean id="concreatB" class="fr.mby.utils.test.ConcreatB" />
+	
+	<bean id="shape2" class="fr.mby.utils.test.Shape2" />
+	<bean id="shape3" class="fr.mby.utils.test.Shape3" />
 </beans>

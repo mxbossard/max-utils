@@ -97,6 +97,12 @@ public interface IProxywiredManager {
 		 */
 		Set<String> viewProxywiredDependencies();
 
+		/**
+		 * The identifier for this Proxywired resource.
+		 * 
+		 * @return
+		 */
+		IProxywiredIdentifier getIdentifier();
 	}
 
 	/**
