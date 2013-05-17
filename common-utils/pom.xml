@@ -1,12 +1,40 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <artifactId>basic-parent</artifactId>
-    <groupId>fr.mby.maven</groupId>
-    <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../maven-parents/basic-parent/pom.xml</relativePath>
-  </parent>
-  <artifactId>common-utils</artifactId>
-  <groupId>fr.mby.utils</groupId>
-  <version>0.0.1-SNAPSHOT</version>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<artifactId>basic-parent</artifactId>
+		<groupId>fr.mby.maven</groupId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../maven-parents/basic-parent/pom.xml</relativePath>
+	</parent>
+	<artifactId>common-utils</artifactId>
+	<groupId>fr.mby.utils</groupId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<properties>
+		<spring.version>3.2.1.RELEASE</spring.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>aopalliance</groupId>
+			<artifactId>aopalliance</artifactId>
+			<version>1.0</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
+			<scope>compile</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

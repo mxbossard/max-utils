@@ -41,7 +41,7 @@ public abstract class AopHelper {
 	 * @param type
 	 *            the type we want to test if the object can hanldle
 	 * @param genericIfc
-	 *            the type of the parametrized object (not the parameter type)
+	 *            the type of the parameterized object (not the parameter type)
 	 * @return true if the object implementing the genericIfc supports the specified type
 	 */
 	public static <T> boolean supportsType(final Object object, final Class<?> type, final Class<?> genericIfc) {
