@@ -57,7 +57,7 @@ public class LoadRunnerTest {
 		};
 		
 		Assert.assertEquals("Bad count for multithread increment !", 10420, this.count);
-		Assert.assertEquals("Bad count of finished without error threads !", 10420, loadRunner.getFinishedThreadWithoutErrorCount());
+		Assert.assertEquals("Bad count of finished without error threads !", 10420, loadRunner.getFinishedTestWithoutErrorCount());
 	}
 	
 	@Test(expected=TestException.class)
