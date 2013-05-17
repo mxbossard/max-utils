@@ -36,6 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import fr.mby.utils.common.test.LoadRunner;
 import fr.mby.utils.spring.beans.factory.BasicProxywiredManager;
 import fr.mby.utils.spring.beans.factory.ProxywiredField;
+import fr.mby.utils.spring.beans.factory.ProxywiredMethodParam;
 import fr.mby.utils.test.AbstractA;
 import fr.mby.utils.test.AbstractB;
 import fr.mby.utils.test.ConcreatA;
@@ -45,8 +46,8 @@ import fr.mby.utils.test.ShapeInterface;
 import fr.mby.utils.test.TestInterface;
 
 /**
- * Test for {@link ProxywiredAnotationBeanPostProcessor}.
- * Use the {@link BasicProxywiredManager} and the {@link BasicProxywiredPactory} and test it in the process.
+ * Test for {@link ProxywiredAnotationBeanPostProcessor}. Use the {@link BasicProxywiredManager} and the
+ * {@link BasicProxywiredPactory} and test it in the process.
  * 
  * @author Maxime Bossard - 2013
  * 
@@ -83,26 +84,39 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 	@Proxywired
 	private Collection<Shape3> shape3Proxywired;
-	
+
 	@Proxywired
 	private Collection<AbstractA> abstractAProxywired;
 
 	@Proxywired
 	private Collection<AbstractB> abstractBProxywired;
-	
+
 	@Proxywired
 	private Collection<ConcreatA> concreatAProxywired;
 
 	@Proxywired
 	private Collection<ConcreatB> concreatBProxywired;
-	
+
+	private Collection<ShapeInterface> injectByMethodParamShapes;
+
+	/**
+	 * Test Proxywired annotation on a method.
+	 * 
+	 * @param shapes
+	 * @throws Exception
+	 */
+	@Proxywired
+	public void proxywiredSetter(final Collection<ShapeInterface> shapes) throws Exception {
+		this.injectByMethodParamShapes = shapes;
+	}
+
 	/**
 	 * Test injection and length.
 	 * 
 	 * @throws Exception
 	 */
 	@Test
-	public void test1() throws Exception {
+	public void testProxywiredInjection() throws Exception {
 		Assert.assertNotNull("Beans were not autowired !", this.iTestAutowired);
 		Assert.assertEquals("Bad autowired bean count !", 3, this.iTestAutowired.size());
 
@@ -118,7 +132,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertNotNull("Single bean was not proxywired !", this.iTestSingleProxywired);
 
 		Assert.assertNotNull("Single bean was not proxywired !", this.iTestQualifiedSingleProxywired);
-		
+
 		Assert.assertNotNull("Beans were not autowired !", this.shapeInterfacesProxywired);
 		Assert.assertEquals("Bad autowired bean count !", 2, this.shapeInterfacesProxywired.size());
 
@@ -137,6 +151,8 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertNotNull("Beans were not autowired !", this.concreatBProxywired);
 		Assert.assertEquals("Bad autowired bean count !", 1, this.concreatBProxywired.size());
 
+		Assert.assertNotNull("Beans were not autowired !", this.injectByMethodParamShapes);
+		Assert.assertEquals("Bad autowired bean count !", 2, this.injectByMethodParamShapes.size());
 	}
 
 	/**
@@ -145,7 +161,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void test2() throws Exception {
+	public void testProxywiredCollectionOrdering() throws Exception {
 		Assert.assertNotNull("Beans were not autowired !", this.iTestAutowired);
 		Assert.assertEquals("Bad autowired bean count !", 3, this.iTestAutowired.size());
 		final Iterator<TestInterface> iterator1 = this.iTestAutowired.iterator();
@@ -180,7 +196,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void test3() throws Exception {
+	public void testProxywiredManager() throws Exception {
 		Assert.assertNotNull("Beans were not proxywired !", this.iTestProxywiredCollection);
 		Assert.assertEquals("Bad proxywired bean count !", 3, this.iTestProxywiredCollection.size());
 
@@ -200,7 +216,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void test4() throws Exception {
+	public void testModificationOfProxywired() throws Exception {
 		// Default Proxywiring (all beans)
 		Assert.assertNotNull("Beans were not proxywired !", this.iTestProxywiredCollection);
 		Assert.assertEquals("Bad proxywired bean count !", 3, this.iTestProxywiredCollection.size());
@@ -238,7 +254,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	 * @throws Exception
 	 */
 	@Test
-	public void test5() throws Exception {
+	public void testModificationOfSingleProxywired() throws Exception {
 		// Default Proxywiring (all beans)
 		Assert.assertNotNull("Beans were not proxywired !", this.iTestSingleProxywired);
 		Assert.assertEquals("Bad proxywired bean !", "TestA", this.iTestSingleProxywired.test());
@@ -269,6 +285,31 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	}
 
 	/**
+	 * Test Proxywired inject by method param modification .
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testModificationOfProxywiredInjectByMethodParam() throws Exception {
+		// Default Proxywiring (all beans)
+		Assert.assertNotNull("Beans were not proxywired !", this.injectByMethodParamShapes);
+		Assert.assertEquals("Bad proxywired bean !", 2, this.injectByMethodParamShapes.size());
+
+		// Modify Proxywiring
+		final LinkedHashSet<String> beanNames = new LinkedHashSet<String>(Arrays.asList("shape2"));
+		this.proxywiredManager.modifyProxywiredDependencies(new ProxywiredMethodParam(this.getClass(),
+				"proxywiredSetter", "shapes"), beanNames);
+
+		// Test viewProxywiredDependencies
+		final Set<String> proxywiredDependencies = this.proxywiredManager
+				.viewProxywiredDependencies(new ProxywiredMethodParam(this.getClass(), "proxywiredSetter", "shapes"));
+		Assert.assertNotNull("Proxywired dependencies null !", proxywiredDependencies);
+		Assert.assertEquals("Bad configuration of proxywired dependencies !", 1, proxywiredDependencies.size());
+		final Iterator<String> iterator3 = proxywiredDependencies.iterator();
+		Assert.assertEquals("Bad availableDependencies ordering !", "shape2", iterator3.next());
+	}
+
+	/**
 	 * Test Proxywired modification in mutithreaded environment.
 	 * 
 	 * @throws Exception
@@ -276,9 +317,10 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	@Test
 	public void loadTest() throws Exception {
 		this.proxywiredManager.setFlushPreferencesOnModification(false);
-		
+
 		@SuppressWarnings("unused")
-		final LoadRunner<?, ?> loadRunner = new LoadRunner<ProxywiredAnotationBeanPostProcessorTest, Void>(50, 1000, this) {
+		final LoadRunner<?, ?> loadRunner = new LoadRunner<ProxywiredAnotationBeanPostProcessorTest, Void>(50, 1000,
+				this) {
 
 			@Override
 			protected Void loadTest(final ProxywiredAnotationBeanPostProcessorTest unitTest) throws Exception {

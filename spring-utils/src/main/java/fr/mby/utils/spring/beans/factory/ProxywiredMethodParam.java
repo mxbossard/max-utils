@@ -43,7 +43,7 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 
 		Assert.hasText(wiredClassName, "Wired class name cannot be found !");
 
-		this.nodePathName = wiredClassName.replaceAll("\\.", "/") + "/" + methodName + "/" + paramName;
+		this.nodePathName = wiredClassName.replaceAll("\\.", "/") + "/" + methodName + "()/" + paramName;
 	}
 
 	public ProxywiredMethodParam(final Class<?> wiredClass, final String methodName, final String paramName) {
@@ -62,27 +62,37 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 	}
 
 	@Override
+	public String toString() {
+		return "ProxywiredMethodParam [nodePathName=" + this.nodePathName + "]";
+	}
+
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((nodePathName == null) ? 0 : nodePathName.hashCode());
+		result = prime * result + ((this.nodePathName == null) ? 0 : this.nodePathName.hashCode());
 		return result;
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
+	public boolean equals(final Object obj) {
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (this.getClass() != obj.getClass()) {
 			return false;
-		ProxywiredMethodParam other = (ProxywiredMethodParam) obj;
-		if (nodePathName == null) {
-			if (other.nodePathName != null)
+		}
+		final ProxywiredMethodParam other = (ProxywiredMethodParam) obj;
+		if (this.nodePathName == null) {
+			if (other.nodePathName != null) {
 				return false;
-		} else if (!nodePathName.equals(other.nodePathName))
+			}
+		} else if (!this.nodePathName.equals(other.nodePathName)) {
 			return false;
+		}
 		return true;
 	}
 

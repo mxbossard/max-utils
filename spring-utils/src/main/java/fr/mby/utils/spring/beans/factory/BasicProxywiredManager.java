@@ -41,6 +41,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
+import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -57,7 +58,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	private static final Logger LOG = LogManager.getLogger(BasicProxywiredManager.class);
 
 	private static final String PROXYWIRED_PREFS_PATH = "ProxywiredPreferences";
-	
+
 	private static final String WIRED_BEANS_PREF_KEY = "wired-beans";
 
 	private static final String WIRING_PREFS_SEPARATOR = ",";
@@ -75,13 +76,12 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	private final Map<Class<?>, Collection<IManageableProxywired>> byTypeStorage = new ConcurrentHashMap<Class<?>, Collection<IManageableProxywired>>();
 
 	private boolean flushPreferencesOnModification = true;
-	
+
 	@Override
 	public Object getProxywiredDependency(final DependencyDescriptor descriptor, final String beanName,
 			final Set<String> autowiredBeanNames, final Object target) {
 		final IManageableProxywired result;
 
-		// final Class<?> type = this.getBeanType(descriptor, autowiredBeanNames);
 		final IProxywiredIdentifier identifier = this.buildIdentifier(descriptor, beanName);
 
 		// Try to find proxywired element in storage
@@ -97,7 +97,8 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	@Override
-	public void modifyProxywiredDependencies(final IProxywiredIdentifier identifier, final LinkedHashSet<String> beanNames) {
+	public void modifyProxywiredDependencies(final IProxywiredIdentifier identifier,
+			final LinkedHashSet<String> beanNames) {
 		Assert.notNull(identifier, "No IProxywiredIdentifier provided !");
 
 		final IManageableProxywired alreadyProxy = this.byIdStorage.get(identifier);
@@ -149,7 +150,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	@Override
 	public Set<String> viewProxywiredDependencies(final IProxywiredIdentifier identifier) {
 		Assert.notNull(identifier, "No IProxywiredIdentifier provided !");
-		
+
 		Set<String> view = Collections.emptySet();
 
 		final IManageableProxywired alreadyProxy = this.byIdStorage.get(identifier);
@@ -188,6 +189,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.proxywiredFactory, "No IProxywiredFactory configured !");
 
+		// Init preferences
 		final Preferences prefs;
 		if (this.proxywiredPreferencesFactory != null) {
 			prefs = this.proxywiredPreferencesFactory.buildPreferences().systemRoot();
@@ -195,13 +197,12 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 			// Default preferences
 			prefs = Preferences.systemRoot();
 		}
-
 		this.proxywiredPrefs = prefs.node(BasicProxywiredManager.PROXYWIRED_PREFS_PATH);
 	}
-	
+
 	@Override
 	public void destroy() throws Exception {
-		this.proxywiredPrefs.flush();
+		this.flushPreferences(this.proxywiredPrefs);
 	}
 
 	/**
@@ -234,16 +235,13 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		storedByTypes.add(result);
 
 		// Try to load wiring preferences
-		final Preferences prefsNode = identifier.getPreferencesNode(proxywiredPrefs);
-		final String wiredBeansPrefValue = prefsNode.get(BasicProxywiredManager.WIRED_BEANS_PREF_KEY, null);
-		if (wiredBeansPrefValue != null) {
-			final String[] splittedValue = StringUtils.split(wiredBeansPrefValue, BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
-			final List<String> wiringPref = Arrays.asList(splittedValue);
-			final LinkedHashSet<String> beanNames = new LinkedHashSet<String>(wiringPref);
+		final LinkedHashSet<String> beanNames = this.readWiringPreferences(identifier);
 
-			// Initialize with prefs
+		// Initialize with prefs
+		if (!CollectionUtils.isEmpty(beanNames)) {
 			this.modifyProxywiredDependencies(identifier, beanNames);
 		}
+
 		return result;
 	}
 
@@ -264,7 +262,26 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	/**
-	 * Update the wiring preference.
+	 * Read the wiring preferences.
+	 * 
+	 * @param identifier
+	 * @return
+	 */
+	protected LinkedHashSet<String> readWiringPreferences(final IProxywiredIdentifier identifier) {
+		LinkedHashSet<String> beanNames = null;
+		final Preferences prefsNode = identifier.getPreferencesNode(this.proxywiredPrefs);
+		final String wiredBeansPrefValue = prefsNode.get(BasicProxywiredManager.WIRED_BEANS_PREF_KEY, null);
+		if (wiredBeansPrefValue != null) {
+			final String[] splittedValue = StringUtils.split(wiredBeansPrefValue,
+					BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
+			final List<String> wiringPref = Arrays.asList(splittedValue);
+			beanNames = new LinkedHashSet<String>(wiringPref);
+		}
+		return beanNames;
+	}
+
+	/**
+	 * Update the wiring preferences.
 	 * 
 	 * @param dependencies
 	 * @param dependencyToModify
@@ -275,17 +292,26 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		// Internal method => Identifier cannot be null here !
 		Assert.notNull(identifier, "Cannot found valid identifier for this dependency !");
 
-		final Preferences prefsNode = identifier.getPreferencesNode(proxywiredPrefs);
+		final Preferences prefsNode = identifier.getPreferencesNode(this.proxywiredPrefs);
 		final String value = StringUtils.collectionToDelimitedString(dependencies.keySet(),
 				BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
-		prefsNode.put(WIRED_BEANS_PREF_KEY, value);
+		prefsNode.put(BasicProxywiredManager.WIRED_BEANS_PREF_KEY, value);
 
 		if (this.flushPreferencesOnModification) {
-			try {
-				prefsNode.flush();
-			} catch (final BackingStoreException e) {
-				BasicProxywiredManager.LOG.error("Preferences were not flushed !", e);
-			}
+			this.flushPreferences(prefsNode);
+		}
+	}
+
+	/**
+	 * Flush the preferences in the backing store.
+	 * 
+	 * @param prefsNode
+	 */
+	protected void flushPreferences(final Preferences prefsNode) {
+		try {
+			prefsNode.flush();
+		} catch (final BackingStoreException e) {
+			BasicProxywiredManager.LOG.error("Preferences were not flushed !", e);
 		}
 	}
 
@@ -301,10 +327,10 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	protected IProxywiredIdentifier buildIdentifier(final DependencyDescriptor descriptor, final String wiredClassName) {
 		final IProxywiredIdentifier identifier;
 
-		if (descriptor.getField() != null) {
-			identifier = new ProxywiredField(descriptor, wiredClassName);
-		} else if (descriptor.getMethodParameter() != null) {
+		if (descriptor.getMethodParameter() != null) {
 			identifier = new ProxywiredMethodParam(descriptor, wiredClassName);
+		} else if (descriptor.getField() != null) {
+			identifier = new ProxywiredField(descriptor, wiredClassName);
 		} else {
 			throw new IllegalStateException("Unkown Proxywiring method !");
 		}
@@ -315,21 +341,35 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	protected Class<?> getBeanType(final DependencyDescriptor descriptor, final Set<String> autowiredBeanNames) {
 		final Class<?> result;
 
-		final Field field = descriptor.getField();
-		final Type fieldType = field.getGenericType();
+		Type fieldType = null;
 
-		final Class<?> type = descriptor.getDependencyType();
-		if (Collection.class.isAssignableFrom(type)) {
-			final ParameterizedType parameterizedType = (ParameterizedType) fieldType;
-			result = (Class<?>) parameterizedType.getActualTypeArguments()[0];
-		} else if (Map.class.isAssignableFrom(type)) {
-			final ParameterizedType parameterizedType = (ParameterizedType) fieldType;
-			result = (Class<?>) parameterizedType.getActualTypeArguments()[1];
-		} else if (type.isArray()) {
-			// We can't do anything
-			throw new IllegalStateException("You cannot use Proxywired annotation on an Array !");
+		final Field field = descriptor.getField();
+		if (field == null) {
+			// Annotation on the method
+			final MethodParameter methodParameter = descriptor.getMethodParameter();
+			if (methodParameter != null) {
+				fieldType = methodParameter.getGenericParameterType();
+			}
 		} else {
-			result = type;
+			fieldType = field.getGenericType();
+		}
+
+		if (fieldType != null) {
+			final Class<?> type = descriptor.getDependencyType();
+			if (Collection.class.isAssignableFrom(type)) {
+				final ParameterizedType parameterizedType = (ParameterizedType) fieldType;
+				result = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+			} else if (Map.class.isAssignableFrom(type)) {
+				final ParameterizedType parameterizedType = (ParameterizedType) fieldType;
+				result = (Class<?>) parameterizedType.getActualTypeArguments()[1];
+			} else if (type.isArray()) {
+				// We can't do anything
+				throw new IllegalStateException("You cannot use Proxywired annotation on an Array !");
+			} else {
+				result = type;
+			}
+		} else {
+			throw new IllegalStateException("Unable to find the Bean type !");
 		}
 
 		return result;
@@ -379,7 +419,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	 * @param flushPreferencesOnModification
 	 *            the flushPreferencesOnModification to set
 	 */
-	public void setFlushPreferencesOnModification(boolean flushPreferencesOnModification) {
+	public void setFlushPreferencesOnModification(final boolean flushPreferencesOnModification) {
 		this.flushPreferencesOnModification = flushPreferencesOnModification;
 	}
 
