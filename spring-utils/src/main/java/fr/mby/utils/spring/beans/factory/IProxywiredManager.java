@@ -45,18 +45,26 @@ public interface IProxywiredManager {
 	/**
 	 * Modify a Proxywired dependency.
 	 * 
+	 * @param id
+	 * @param beanNames
+	 */
+	void modifyProxywiredDependencies(IProxywiredIdentifier id, LinkedHashSet<String> beanNames);
+
+	/**
+	 * Modify all Proxywired dependency matching the proxywiredType.
+	 * 
 	 * @param proxywiredKey
 	 * @param beanNames
 	 */
-	void modifyProxywiredDepencies(String proxywiredKey, LinkedHashSet<String> beanNames);
+	void modifyAllProxywiredDepencies(Class<?> proxywiredType, LinkedHashSet<String> beanNames);
 
 	/**
 	 * Ordered view of all bean names currently in one Proxywired dependency.
 	 * 
-	 * @param proxywiredKey
+	 * @param id
 	 * @return
 	 */
-	Set<String> viewProxywiredDependencies(String proxywiredKey);
+	Set<String> viewProxywiredDependencies(IProxywiredIdentifier id);
 
 	/**
 	 * View of all bean names of a specific type currently laying in the BeanFactory.
@@ -87,6 +95,18 @@ public interface IProxywiredManager {
 		 * @return
 		 */
 		Set<String> viewProxywiredDependencies();
+
+	}
+
+	/**
+	 * Identify some Proxywired resources.
+	 * 
+	 * @author Maxime Bossard - 2013
+	 * 
+	 */
+	public interface IProxywiredIdentifier {
+
+		String getKey();
 
 	}
 

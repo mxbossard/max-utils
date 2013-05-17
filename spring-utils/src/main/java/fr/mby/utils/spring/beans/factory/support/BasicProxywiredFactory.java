@@ -345,12 +345,12 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		public Object invoke(final MethodInvocation invocation) throws Throwable {
 			Object result = null;
 
-			if (this.isMethod1(invocation)) {
+			if (this.isMethod(invocation, ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_1)) {
 				final LinkedHashMap<String, Object> dependencies = (LinkedHashMap<String, Object>) invocation
 						.getArguments()[0];
 				this.modifyProxywiredDependencies(dependencies);
 				result = null;
-			} else if (this.isMethod2(invocation)) {
+			} else if (this.isMethod(invocation, ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_2)) {
 				result = this.viewProxywiredDependencies();
 			} else {
 				result = invocation.proceed();
@@ -373,26 +373,13 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 		 * Test if the invoked method is the one we want to advice.
 		 * 
 		 * @param invocation
+		 * @param methodName
 		 * @return
 		 */
-		protected boolean isMethod1(final MethodInvocation invocation) {
+		protected boolean isMethod(final MethodInvocation invocation, final String methodName) {
 			final Method method = invocation.getMethod();
 
-			final boolean testName = ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_1.equals(method.getName());
-
-			return testName;
-		}
-
-		/**
-		 * Test if the invoked method is the one we want to advice.
-		 * 
-		 * @param invocation
-		 * @return
-		 */
-		protected boolean isMethod2(final MethodInvocation invocation) {
-			final Method method = invocation.getMethod();
-
-			final boolean testName = ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_2.equals(method.getName());
+			final boolean testName = methodName != null && methodName.equals(method.getName());
 
 			return testName;
 		}

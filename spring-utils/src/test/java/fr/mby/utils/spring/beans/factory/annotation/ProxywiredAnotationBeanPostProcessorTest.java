@@ -35,6 +35,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import fr.mby.utils.common.test.LoadRunner;
 import fr.mby.utils.spring.beans.factory.IProxywiredManager;
+import fr.mby.utils.spring.beans.factory.ProxywiredField;
 import fr.mby.utils.test.ITest;
 
 /**
@@ -142,7 +143,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 		Assert.assertEquals("Bad count of available dependencies !", 3, availableDependencies.size());
 
 		final Set<String> proxywiredDependencies = this.proxywiredManager
-				.viewProxywiredDependencies("fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection");
+				.viewProxywiredDependencies(new ProxywiredField(this.getClass(), "iTestProxywiredCollection"));
 		Assert.assertEquals("Bad default configuration of proxywired dependencies !", availableDependencies.size(),
 				proxywiredDependencies.size());
 	}
@@ -160,10 +161,8 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		// Modify Proxywiring
 		final LinkedHashSet<String> beanNames = new LinkedHashSet<String>(Arrays.asList("testC", "testA"));
-		this.proxywiredManager
-				.modifyProxywiredDepencies(
-						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection",
-						beanNames);
+		this.proxywiredManager.modifyProxywiredDependencies(new ProxywiredField(this.getClass(),
+				"iTestProxywiredCollection"), beanNames);
 
 		// Test viewAllDependencies
 		final Set<String> availableDependencies = this.proxywiredManager.viewAllDependencies(ITest.class);
@@ -172,7 +171,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		// Test viewProxywiredDependencies
 		final Set<String> proxywiredDependencies = this.proxywiredManager
-				.viewProxywiredDependencies("fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection");
+				.viewProxywiredDependencies(new ProxywiredField(this.getClass(), "iTestProxywiredCollection"));
 		Assert.assertNotNull("Proxywired dependencies null !", proxywiredDependencies);
 		Assert.assertEquals("Bad default configuration of proxywired dependencies !", 2, proxywiredDependencies.size());
 		final Iterator<String> iterator3 = proxywiredDependencies.iterator();
@@ -200,10 +199,8 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		// Modify Proxywiring
 		final LinkedHashSet<String> beanNames = new LinkedHashSet<String>(Arrays.asList("testC", "testA"));
-		this.proxywiredManager
-				.modifyProxywiredDepencies(
-						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestSingleProxywired",
-						beanNames);
+		this.proxywiredManager.modifyProxywiredDependencies(new ProxywiredField(this.getClass(),
+				"iTestSingleProxywired"), beanNames);
 
 		// Test viewAllDependencies
 		final Set<String> availableDependencies = this.proxywiredManager.viewAllDependencies(ITest.class);
@@ -212,7 +209,7 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		// Test viewProxywiredDependencies
 		final Set<String> proxywiredDependencies = this.proxywiredManager
-				.viewProxywiredDependencies("fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestSingleProxywired");
+				.viewProxywiredDependencies(new ProxywiredField(this.getClass(), "iTestSingleProxywired"));
 		Assert.assertNotNull("Proxywired dependencies null !", proxywiredDependencies);
 		Assert.assertEquals("Bad default configuration of proxywired dependencies !", 2, proxywiredDependencies.size());
 		final Iterator<String> iterator3 = proxywiredDependencies.iterator();
@@ -253,19 +250,15 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 
 		// Modify Proxywiring : 2 beans
 		final LinkedHashSet<String> twoBeanNames = new LinkedHashSet<String>(Arrays.asList("testC", "testA"));
-		this.proxywiredManager
-				.modifyProxywiredDepencies(
-						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection",
-						twoBeanNames);
+		this.proxywiredManager.modifyProxywiredDependencies(new ProxywiredField(this.getClass(),
+				"iTestProxywiredCollection"), twoBeanNames);
 
 		this.testSizeAndOrder(this.iTestProxywiredCollection);
 
 		// Modify Proxywiring : 3 beans
 		final LinkedHashSet<String> threeBeanNames = new LinkedHashSet<String>(Arrays.asList("testB", "testC", "testA"));
-		this.proxywiredManager
-				.modifyProxywiredDepencies(
-						"fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnotationBeanPostProcessorTest.iTestProxywiredCollection",
-						threeBeanNames);
+		this.proxywiredManager.modifyProxywiredDependencies(new ProxywiredField(this.getClass(),
+				"iTestProxywiredCollection"), threeBeanNames);
 
 		this.testSizeAndOrder(this.iTestProxywiredCollection);
 	}

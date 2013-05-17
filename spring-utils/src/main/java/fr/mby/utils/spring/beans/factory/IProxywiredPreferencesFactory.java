@@ -16,30 +16,16 @@
 
 package fr.mby.utils.spring.beans.factory;
 
+import java.util.prefs.Preferences;
+
 /**
+ * Factory responsible to build the Proxywired preferences.
+ * 
  * @author Maxime Bossard - 2013
  * 
  */
-public interface IProxywiredConfigurationProvider {
+public interface IProxywiredPreferencesFactory {
 
-	/**
-	 * Reprensent the configuration
-	 * 
-	 * @author Maxime Bossard - 2013
-	 * 
-	 */
-	public interface IProxywiredConfiguration {
-
-	}
-
-	/**
-	 * Identify some Proxywired resources.
-	 * 
-	 * @author Maxime Bossard - 2013
-	 * 
-	 */
-	public interface IProxywiredIdentifier {
-
-	}
+	Preferences buildPreferences();
 
 }
