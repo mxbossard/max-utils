@@ -31,6 +31,10 @@ import org.springframework.beans.factory.config.DependencyDescriptor;
  */
 public interface IProxywiredManager {
 
+	static final String WIRED_BEANS_CONFIG_KEY = "wiredBeans";
+
+	static final String WIRING_PREFS_SEPARATOR = ",";
+
 	/**
 	 * Retrieve a Proxywired dependency for injection.
 	 * 

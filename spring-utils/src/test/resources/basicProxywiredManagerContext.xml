@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="proxywiredManager" class="fr.mby.utils.spring.beans.factory.BasicProxywiredManager">
+		<property name="proxywiredFactory" ref="proxywiredFactory" />
+		<property name="configuration" ref="proxywiredManagerConfiguration" />
+	</bean>
+	
+	<bean id="proxywiredManagerConfiguration" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<constructor-arg index="0" value="src/test/resources/proxywired-config-store.properties" />
+	</bean>
+
+	<bean id="proxywiredFactory" class="fr.mby.utils.spring.beans.factory.support.BasicProxywiredFactory" />
+
+	<bean id="proxywireAnnotationProcessor" class="fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnnotationBeanPostProcessor">
+		<property name="proxywiredManager" ref="proxywiredManager" />
+	</bean>
+	
+	<bean id="testA" class="fr.mby.utils.test.TestA" />
+	<bean id="testB" class="fr.mby.utils.test.TestB" />
+	<bean id="testC" class="fr.mby.utils.test.TestC" />
+
+	<bean id="abstractB" class="fr.mby.utils.test.AbstractB" />
+	
+	<bean id="concreatA" class="fr.mby.utils.test.ConcreatA" />
+	<bean id="concreatB" class="fr.mby.utils.test.ConcreatB" />
+	
+	<bean id="shape2" class="fr.mby.utils.test.Shape2" />
+	<bean id="shape3" class="fr.mby.utils.test.Shape3" />
+</beans>

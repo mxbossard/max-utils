@@ -29,6 +29,10 @@ import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredIdentifie
  */
 public class ProxywiredMethodParam implements IProxywiredIdentifier {
 
+	/** Configuration key in node path indicating that the node path describe a method parameter. */
+	public static String METHOD_CONF_KEY = "()";
+
+	/** Path identifying a Proxywired resource. */
 	private String nodePath;
 
 	protected ProxywiredMethodParam(final DependencyDescriptor descriptor, final String wiredClassName) {
@@ -55,12 +59,19 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 		this.buildNodePath(wiredClass.getName(), methodName, paramName);
 	}
 
+	public ProxywiredMethodParam(final String nodePath) {
+		super();
+
+		Assert.hasText(nodePath, "No nodePath provided !");
+		this.nodePath = nodePath;
+	}
+
 	/**
 	 * @param wiredClassName
 	 * @param fieldName
 	 */
 	protected void buildNodePath(final String wiredClassName, final String methodName, final String fieldName) {
-		this.nodePath = wiredClassName + "." + methodName + "()." + fieldName;
+		this.nodePath = wiredClassName + "." + methodName + ProxywiredMethodParam.METHOD_CONF_KEY + "." + fieldName;
 	}
 
 	@Override

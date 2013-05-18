@@ -32,6 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.prefs.BackingStoreException;
 
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.configuration.event.EventSource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.BeansException;
@@ -52,20 +55,22 @@ import fr.mby.utils.spring.beans.factory.support.IProxywiredFactory;
  * @author Maxime Bossard - 2013
  * 
  */
-public class BasicProxywiredManager implements IProxywiredManager, InitializingBean, DisposableBean, BeanFactoryAware {
+public class BasicProxywiredManager
+		implements
+			IProxywiredManager,
+			InitializingBean,
+			DisposableBean,
+			BeanFactoryAware,
+			ConfigurationListener {
 
 	/** Logger. */
 	private static final Logger LOG = LogManager.getLogger(BasicProxywiredManager.class);
-
-	private static final String WIRED_BEANS_CONFIG_KEY = "wired-beans";
-
-	private static final String WIRING_PREFS_SEPARATOR = ",";
 
 	private ConfigurableListableBeanFactory beanFactory;
 
 	private IProxywiredFactory proxywiredFactory;
 
-	private Configuration managerConfiguration;
+	private Configuration configuration;
 
 	private final Map<IProxywiredIdentifier, IManageableProxywired> byIdStorage = new ConcurrentHashMap<IProxywiredIdentifier, IManageableProxywired>();
 
@@ -98,16 +103,12 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		final IManageableProxywired alreadyProxy = this.byIdStorage.get(identifier);
 
 		if (alreadyProxy != null) {
-			final LinkedHashMap<String, Object> dependencies = new LinkedHashMap<String, Object>();
-			if (beanNames != null) {
-				for (final String beanName : beanNames) {
-					final Object bean = this.beanFactory.getBean(beanName);
-					if (bean != null) {
-						dependencies.put(beanName, bean);
-					}
-				}
-			}
+			// Build dependency to wire Map
+			final LinkedHashMap<String, Object> dependencies = this.buildDependencyToWireMap(beanNames);
+
 			this.modifyDependency(dependencies, alreadyProxy);
+			BasicProxywiredManager.LOG.info(
+					"Porxywired dependency with identifier: [{}] was modified with beans: [{}]", identifier, beanNames);
 		} else {
 			throw new IllegalStateException("Unable to found a Prowywired resource for this IProxywiredIdentifier !");
 		}
@@ -120,20 +121,14 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		final Collection<IManageableProxywired> sameTypeDependencies = this.byTypeStorage.get(proxywiredType);
 
 		if (!CollectionUtils.isEmpty(sameTypeDependencies)) {
-			// Build dependency to wire Map
-			final LinkedHashMap<String, Object> dependencies = new LinkedHashMap<String, Object>();
-			if (beanNames != null) {
-				for (final String beanName : beanNames) {
-					final Object bean = this.beanFactory.getBean(beanName);
-					if (bean != null) {
-						dependencies.put(beanName, bean);
-					}
-				}
-			}
+			final LinkedHashMap<String, Object> dependencies = this.buildDependencyToWireMap(beanNames);
 
 			// Modify all dependencies of this type
 			for (final IManageableProxywired dependencyToModify : sameTypeDependencies) {
 				this.modifyDependency(dependencies, dependencyToModify);
+				BasicProxywiredManager.LOG.info(
+						"All Proxywired dependency of type: [{}] were modified with beans: [{}]",
+						proxywiredType.getName(), beanNames);
 			}
 
 		} else {
@@ -179,12 +174,52 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	@Override
+	public void configurationChanged(final ConfigurationEvent event) {
+		final String propertyName = event.getPropertyName();
+		final Object propertyValue = event.getPropertyValue();
+
+		if (propertyName != null && propertyName.endsWith("." + IProxywiredManager.WIRED_BEANS_CONFIG_KEY)) {
+			// A Wired beans property changed
+			if (String.class.isAssignableFrom(propertyValue.getClass())) {
+				// Build bean names set
+				final LinkedHashSet<String> beanNames = this.buildWiredBeanSetFromConfig((String) propertyValue);
+
+				// Build proxywired resource identifier
+				final int suffixPos = propertyName.lastIndexOf("." + IProxywiredManager.WIRED_BEANS_CONFIG_KEY);
+				final String proxywiredNodePath = propertyName.substring(0, suffixPos);
+				final IProxywiredIdentifier identifier = this.buildIdentifier(proxywiredNodePath);
+
+				final IManageableProxywired dependencyToModify = this.byIdStorage.get(identifier);
+				if (dependencyToModify != null) {
+					final LinkedHashMap<String, Object> dependenciesToWire = this.buildDependencyToWireMap(beanNames);
+					dependencyToModify.modifyProxywiredDependencies(dependenciesToWire);
+					BasicProxywiredManager.LOG.info(
+							"ConfigurationChangedEvent leaded to update Porxywired dependency: [{}] with beans: [{}]",
+							identifier, beanNames);
+				} else {
+					BasicProxywiredManager.LOG.warn(
+							"Unable to find a Proxywired dependency corresponding to indentifier: [{}] ", identifier);
+				}
+
+			} else {
+				throw new IllegalStateException("Wired beans config value should be a list of string !");
+			}
+		} else {
+			throw new IllegalStateException("ConfigurationChangedEvent with key: [" + propertyName + "] => value: ["
+					+ propertyValue + "] cannot be processed !");
+		}
+	}
+
+	@Override
 	public void afterPropertiesSet() throws Exception {
 		Assert.notNull(this.proxywiredFactory, "No IProxywiredFactory configured !");
 
 		// Init configuration
-		if (this.managerConfiguration != null) {
-
+		if (this.configuration != null) {
+			if (EventSource.class.isAssignableFrom(this.configuration.getClass())) {
+				final EventSource eventSource = (EventSource) this.configuration;
+				eventSource.addConfigurationListener(this);
+			}
 		} else {
 
 		}
@@ -195,7 +230,7 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		this.beanFactory = null;
 		this.byIdStorage.clear();
 		this.byTypeStorage.clear();
-		this.managerConfiguration = null;
+		this.configuration = null;
 		this.proxywiredFactory = null;
 	}
 
@@ -256,48 +291,59 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	/**
-	 * Read the wiring preferences.
+	 * Read the wiring configuration.
 	 * 
 	 * @param identifier
 	 * @return
 	 */
 	protected LinkedHashSet<String> readWiringConfiguration(final IProxywiredIdentifier identifier) {
 		LinkedHashSet<String> beanNames = null;
-
-		if (this.managerConfiguration != null) {
-			final Configuration elementConfig = identifier.getConfigurationSubset(this.managerConfiguration);
-			final String wiredBeansConfig = elementConfig
-					.getString(BasicProxywiredManager.WIRED_BEANS_CONFIG_KEY, null);
-			if (wiredBeansConfig != null) {
-				final String[] splittedValue = StringUtils.split(wiredBeansConfig,
-						BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
-				final List<String> wiringPref = Arrays.asList(splittedValue);
-				beanNames = new LinkedHashSet<String>(wiringPref);
-			}
+		if (this.configuration != null) {
+			final Configuration elementConfig = identifier.getConfigurationSubset(this.configuration);
+			final String wiredBeansConfig = elementConfig.getString(IProxywiredManager.WIRED_BEANS_CONFIG_KEY, null);
+			beanNames = this.buildWiredBeanSetFromConfig(wiredBeansConfig);
 		}
 
 		return beanNames;
 	}
 
 	/**
-	 * Update the wiring preferences.
+	 * Update the wiring configuration.
 	 * 
 	 * @param dependencies
 	 * @param dependencyToModify
 	 */
 	protected void updateWiringConfiguration(final LinkedHashMap<String, Object> dependencies,
 			final IManageableProxywired dependencyToModify) {
-		if (this.managerConfiguration != null) {
+		if (this.configuration != null) {
 			final IProxywiredIdentifier identifier = dependencyToModify.getIdentifier();
 			// Internal method => Identifier cannot be null here !
 			Assert.notNull(identifier, "Cannot found valid identifier for this dependency !");
 
 			final String beanNames = StringUtils.collectionToDelimitedString(dependencies.keySet(),
-					BasicProxywiredManager.WIRING_PREFS_SEPARATOR);
+					IProxywiredManager.WIRING_PREFS_SEPARATOR);
 
-			final Configuration elementConfig = identifier.getConfigurationSubset(this.managerConfiguration);
-			elementConfig.addProperty(BasicProxywiredManager.WIRED_BEANS_CONFIG_KEY, beanNames);
+			final Configuration elementConfig = identifier.getConfigurationSubset(this.configuration);
+			elementConfig.addProperty(IProxywiredManager.WIRED_BEANS_CONFIG_KEY, beanNames);
 		}
+	}
+
+	/**
+	 * Build a Set of bean names based on the wired beans config value.
+	 * 
+	 * @param wiredBeansConfig
+	 *            wired beans config value
+	 * @return the coresponding LinkedHashSet
+	 */
+	protected LinkedHashSet<String> buildWiredBeanSetFromConfig(final String wiredBeansConfig) {
+		LinkedHashSet<String> beanNames = null;
+
+		if (wiredBeansConfig != null) {
+			final String[] splittedValue = wiredBeansConfig.split(IProxywiredManager.WIRING_PREFS_SEPARATOR);
+			final List<String> wiringPref = Arrays.asList(splittedValue);
+			beanNames = new LinkedHashSet<String>(wiringPref);
+		}
+		return beanNames;
 	}
 
 	/**
@@ -310,7 +356,10 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	 * @return the identifier
 	 */
 	protected IProxywiredIdentifier buildIdentifier(final DependencyDescriptor descriptor, final String wiredClassName) {
-		final IProxywiredIdentifier identifier;
+		Assert.notNull(descriptor, "No DependencyDescriptor provided !");
+		Assert.hasText(wiredClassName, "No wiredClassName provided !");
+
+		IProxywiredIdentifier identifier = null;
 
 		if (descriptor.getMethodParameter() != null) {
 			identifier = new ProxywiredMethodParam(descriptor, wiredClassName);
@@ -323,6 +372,60 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 		return identifier;
 	}
 
+	/**
+	 * Build the identifier for a Proxywired dependency.
+	 * 
+	 * @param descriptor
+	 *            the dependency descriptor
+	 * @param wiredClassName
+	 *            the class name of the in wich contain the annotation
+	 * @return the identifier cannot be null
+	 */
+	protected IProxywiredIdentifier buildIdentifier(final String nodePath) {
+		Assert.hasText(nodePath, "No nodePath provided !");
+
+		final IProxywiredIdentifier identifier;
+
+		if (nodePath.contains(ProxywiredMethodParam.METHOD_CONF_KEY)) {
+			identifier = new ProxywiredMethodParam(nodePath);
+		} else if (nodePath.contains(ProxywiredField.FIELD_CONF_KEY)) {
+			identifier = new ProxywiredField(nodePath);
+		} else {
+			throw new IllegalStateException("Unkown to build IProxywiredIdentifier for the node: [" + nodePath + "]");
+		}
+
+		return identifier;
+	}
+
+	/**
+	 * Build the LinkedHashMap of beans to wire.
+	 * 
+	 * @param beanNames
+	 *            the names of beans to wire
+	 * @return
+	 */
+	protected LinkedHashMap<String, Object> buildDependencyToWireMap(final LinkedHashSet<String> beanNames) {
+		final LinkedHashMap<String, Object> dependencies = new LinkedHashMap<String, Object>();
+		if (beanNames != null) {
+			for (final String beanName : beanNames) {
+				final Object bean = this.beanFactory.getBean(beanName);
+				if (bean != null) {
+					dependencies.put(beanName, bean);
+				} else {
+					BasicProxywiredManager.LOG.warn("Cannot found bean with name: [{}]", beanName);
+				}
+			}
+		}
+		return dependencies;
+	}
+
+	/**
+	 * Find Bean Type to inject (not the generic type like Collection or Set).
+	 * 
+	 * @param descriptor
+	 * @param autowiredBeanNames
+	 * @return
+	 */
 	protected Class<?> getBeanType(final DependencyDescriptor descriptor, final Set<String> autowiredBeanNames) {
 		final Class<?> result;
 
@@ -380,22 +483,22 @@ public class BasicProxywiredManager implements IProxywiredManager, InitializingB
 	}
 
 	/**
-	 * Getter of proxywiredConfiguration.
+	 * Getter of configuration.
 	 * 
-	 * @return the proxywiredConfiguration
+	 * @return the configuration
 	 */
-	public Configuration getProxywiredConfiguration() {
-		return this.managerConfiguration;
+	public Configuration getConfiguration() {
+		return this.configuration;
 	}
 
 	/**
-	 * Setter of proxywiredConfiguration.
+	 * Setter of configuration.
 	 * 
-	 * @param proxywiredConfiguration
-	 *            the proxywiredConfiguration to set
+	 * @param configuration
+	 *            the configuration to set
 	 */
-	public void setProxywiredConfiguration(final Configuration proxywiredConfiguration) {
-		this.managerConfiguration = proxywiredConfiguration;
+	public void setConfiguration(final Configuration configuration) {
+		this.configuration = configuration;
 	}
 
 }

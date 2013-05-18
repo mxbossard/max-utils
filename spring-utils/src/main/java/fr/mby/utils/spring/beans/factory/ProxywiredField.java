@@ -30,6 +30,10 @@ import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredIdentifie
  */
 public class ProxywiredField implements IProxywiredIdentifier {
 
+	/** Configuration key in node path indicating that the node path describe a field. */
+	public static String FIELD_CONF_KEY = "__field__";
+
+	/** Path identifying a Proxywired resource. */
 	private String nodePath;
 
 	protected ProxywiredField(final DependencyDescriptor descriptor, final String wiredClassName) {
@@ -54,12 +58,19 @@ public class ProxywiredField implements IProxywiredIdentifier {
 		this.buildNodePath(wiredClass.getName(), fieldName);
 	}
 
+	public ProxywiredField(final String nodePath) {
+		super();
+
+		Assert.hasText(nodePath, "No nodePath provided !");
+		this.nodePath = nodePath;
+	}
+
 	/**
 	 * @param wiredClassName
 	 * @param fieldName
 	 */
 	protected void buildNodePath(final String wiredClassName, final String fieldName) {
-		this.nodePath = wiredClassName + "." + fieldName;
+		this.nodePath = wiredClassName + "." + ProxywiredField.FIELD_CONF_KEY + "." + fieldName;
 	}
 
 	@Override
