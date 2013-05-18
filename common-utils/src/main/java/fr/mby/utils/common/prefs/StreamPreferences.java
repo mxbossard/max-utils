@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.prefs.AbstractPreferences;
 import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -109,67 +108,12 @@ public class StreamPreferences extends AbstractPreferences {
 
 	@Override
 	protected void syncSpi() throws BackingStoreException {
-		throw new IllegalAccessError("Should not be called !");
-	}
-
-	@Override
-	public void sync() throws BackingStoreException {
-		try {
-			Preferences.importPreferences(this.inputStreamStorage);
-			this.inputStreamStorage.reset();
-
-			if (this.parent() == null) {
-				// Root node
-
-			} else {
-				// this.parent().sync();
-			}
-
-		} catch (final Exception e) {
-			throw new BackingStoreException(e);
-		}
+		throw new IllegalAccessError("Not implemented yet !");
 	}
 
 	@Override
 	protected void flushSpi() throws BackingStoreException {
-		throw new IllegalAccessError("Should not be called !");
-	}
-
-	@Override
-	public void flush() throws BackingStoreException {
-		try {
-			if (this.parent() == null) {
-				// Root node
-				this.exportNode(this.outputStreamStorage);
-				this.flushChildren();
-			} else {
-				this.parent().flush();
-				// this.exportNode(this.outputStreamStorage);
-			}
-
-		} catch (final Exception e) {
-			throw new BackingStoreException(e);
-		}
-	}
-
-	/** */
-	protected void flushChildren() throws BackingStoreException {
-		final AbstractPreferences[] children = this.cachedChildren();
-		if (children != null) {
-			for (final AbstractPreferences child : children) {
-				try {
-					child.exportNode(this.outputStreamStorage);
-				} catch (final Exception e) {
-					throw new BackingStoreException(e);
-				}
-
-				if (child != null && StreamPreferences.class.isAssignableFrom(child.getClass())) {
-					final StreamPreferences streamChild = (StreamPreferences) child;
-
-					streamChild.flushChildren();
-				}
-			}
-		}
+		throw new IllegalAccessError("Not implemented yet !");
 	}
 
 }

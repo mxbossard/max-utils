@@ -45,40 +45,36 @@ public class StreamPreferencesTest {
 
 	@Test
 	public void testStorage() throws Exception {
-		{
-			final Preferences prefs = this.buildPreferences();
 
-			final Preferences node1 = prefs.node("node1");
-			node1.put("node1 key1", "value 1 1");
-			node1.put("node1 key2", "value 1 2");
+		final Preferences prefs = this.buildPreferences();
 
-			final Preferences node2 = prefs.node("node2");
-			node2.put("node2 key1", "value 2 1");
-			node2.put("node2 key2", "value 2 2");
+		final Preferences node1 = prefs.node("node1");
+		node1.put("node1 key1", "value 1 1");
+		node1.put("node1 key2", "value 1 2");
 
-			final Preferences node21 = node2.node("node1");
-			node21.put("node21 key1", "value 21 1");
-			node21.put("node21 key2", "value 21 2");
+		final Preferences node2 = prefs.node("node2");
+		node2.put("node2 key1", "value 2 1");
+		node2.put("node2 key2", "value 2 2");
 
-			node21.flush();
-		}
+		final Preferences node21 = node2.node("node1");
+		node21.put("node21 key1", "value 21 1");
+		node21.put("node21 key2", "value 21 2");
 
-		{
-			final Preferences prefs = this.buildPreferences();
-			prefs.sync();
+		// node21.flush();
+		// final Preferences prefs = this.buildPreferences();
+		// prefs.sync();
 
-			final Preferences node1 = prefs.node("node1");
-			Assert.assertEquals("Bad value for node1 key1 !", "value 1 1", node1.get("node1 key1", null));
-			Assert.assertEquals("Bad value for node1 key2 !", "value 1 2", node1.get("node1 key2", null));
+		final Preferences readNode1 = prefs.node("node1");
+		Assert.assertEquals("Bad value for node1 key1 !", "value 1 1", readNode1.get("node1 key1", null));
+		Assert.assertEquals("Bad value for node1 key2 !", "value 1 2", readNode1.get("node1 key2", null));
 
-			final Preferences node2 = prefs.node("node2");
-			Assert.assertEquals("Bad value for node2 key1 !", "value 2 1", node2.get("node2 key1", null));
-			Assert.assertEquals("Bad value for node2 key2 !", "value 2 2", node2.get("node2 key2", null));
+		final Preferences readNode2 = prefs.node("node2");
+		Assert.assertEquals("Bad value for node2 key1 !", "value 2 1", readNode2.get("node2 key1", null));
+		Assert.assertEquals("Bad value for node2 key2 !", "value 2 2", readNode2.get("node2 key2", null));
 
-			final Preferences node21 = node2.node("node1");
-			Assert.assertEquals("Bad value for node21 key1 !", "value 21 1", node21.get("node21 key1", null));
-			Assert.assertEquals("Bad value for node21 key2 !", "value 21 2", node21.get("node21 key2", null));
-		}
+		final Preferences readNode21 = node2.node("node1");
+		Assert.assertEquals("Bad value for node21 key1 !", "value 21 1", readNode21.get("node21 key1", null));
+		Assert.assertEquals("Bad value for node21 key2 !", "value 21 2", readNode21.get("node21 key2", null));
 
 	}
 
