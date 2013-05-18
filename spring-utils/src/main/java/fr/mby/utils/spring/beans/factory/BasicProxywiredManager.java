@@ -47,6 +47,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import fr.mby.utils.spring.beans.factory.support.IProxywiredFactory;
+import fr.mby.utils.spring.beans.factory.support.IProxywiredPreferencesFactory;
 
 /**
  * @author Maxime Bossard - 2013
