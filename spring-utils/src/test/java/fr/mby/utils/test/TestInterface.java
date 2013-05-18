@@ -14,32 +14,14 @@
  * limitations under the License.
  */
 
-package fr.mby.utils.spring.beans.factory;
+package fr.mby.utils.test;
 
 /**
  * @author Maxime Bossard - 2013
  * 
  */
-public interface IProxywiredConfigurationProvider {
+public interface TestInterface {
 
-	/**
-	 * Reprensent the configuration
-	 * 
-	 * @author Maxime Bossard - 2013
-	 * 
-	 */
-	public interface IProxywiredConfiguration {
-
-	}
-
-	/**
-	 * Identify some Proxywired resources.
-	 * 
-	 * @author Maxime Bossard - 2013
-	 * 
-	 */
-	public interface IProxywiredIdentifier {
-
-	}
+	String test();
 
 }

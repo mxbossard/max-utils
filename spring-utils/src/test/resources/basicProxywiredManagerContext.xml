@@ -4,10 +4,15 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 	<bean id="proxywiredManager" class="fr.mby.utils.spring.beans.factory.BasicProxywiredManager">
-		<property name="proxywiredFactory">
-			<bean class="fr.mby.utils.spring.beans.factory.support.BasicProxywiredFactory" />
-		</property>
+		<property name="proxywiredFactory" ref="proxywiredFactory" />
+		<property name="configuration" ref="proxywiredManagerConfiguration" />
 	</bean>
+	
+	<bean id="proxywiredManagerConfiguration" class="org.apache.commons.configuration.PropertiesConfiguration">
+		<constructor-arg index="0" value="src/test/resources/proxywired-config-store.properties" />
+	</bean>
+
+	<bean id="proxywiredFactory" class="fr.mby.utils.spring.beans.factory.support.BasicProxywiredFactory" />
 
 	<bean id="proxywireAnnotationProcessor" class="fr.mby.utils.spring.beans.factory.annotation.ProxywiredAnnotationBeanPostProcessor">
 		<property name="proxywiredManager" ref="proxywiredManager" />

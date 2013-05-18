@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostP
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
+import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
 
 import fr.mby.utils.spring.beans.factory.IProxywiredManager;
@@ -197,7 +198,14 @@ public class ProxywiredAnnotationBeanPostProcessor extends AutowiredAnnotationBe
 		protected boolean isProxywiredAnnotationUsed(final MethodInvocation invocation) {
 			final DependencyDescriptor descriptor = (DependencyDescriptor) invocation.getArguments()[0];
 
-			final Annotation[] annotations = descriptor.getAnnotations();
+			Annotation[] annotations = descriptor.getAnnotations();
+			if (annotations == null || annotations.length == 0) {
+				final MethodParameter methodParameter = descriptor.getMethodParameter();
+				if (methodParameter != null) {
+					annotations = methodParameter.getMethodAnnotations();
+				}
+			}
+
 			if (annotations != null) {
 				for (final Annotation annotation : annotations) {
 					if (ProxywiredAnnotationBeanPostProcessor.PROXY_ANNOTATION.isAssignableFrom(annotation.getClass())) {

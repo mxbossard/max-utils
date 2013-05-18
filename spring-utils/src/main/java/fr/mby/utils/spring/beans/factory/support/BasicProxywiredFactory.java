@@ -16,7 +16,6 @@
 
 package fr.mby.utils.spring.beans.factory.support;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,13 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.aopalliance.intercept.MethodInterceptor;
-import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.TargetSource;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.beans.factory.config.DependencyDescriptor;
+import org.springframework.util.Assert;
 
+import fr.mby.utils.common.reflect.InterfaceImplementationAdvice;
 import fr.mby.utils.spring.beans.factory.IProxywiredManager.IManageableProxywired;
+import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredIdentifier;
 
 /**
  * @author Maxime BOSSARD - 2013.
@@ -43,23 +43,34 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public IManageableProxywired proxy(final DependencyDescriptor descriptor, final Object target) {
+	public IManageableProxywired proxy(final DependencyDescriptor descriptor, final IProxywiredIdentifier identifier, 
+			final Object target) {
+		Assert.notNull(descriptor, "No DependencyDescriptor provided !");
+		Assert.notNull(descriptor, "No IProxywiredIdentifier provided !");
+		Assert.notNull(descriptor, "No Target to proxy provided !");
+		
 		final IManageableProxywired result;
 
 		final Class<?> dependencyType = descriptor.getDependencyType();
 
 		if (Map.class.isAssignableFrom(dependencyType) && dependencyType.isInterface()) {
-			result = this.proxyDependencyMap((Map<String, Object>) target);
+			result = this.proxyDependencyMap(identifier, (Map<String, Object>) target);
+			
 		} else if (List.class.isAssignableFrom(dependencyType) && dependencyType.isInterface()) {
-			result = this.proxyDependencyList((List<Object>) target);
+			result = this.proxyDependencyList(identifier, (List<Object>) target);
+			
 		} else if (Collection.class.isAssignableFrom(dependencyType) && dependencyType.isInterface()) {
-			result = this.proxyDependencyCollection((Collection<Object>) target, dependencyType);
+			result = this.proxyDependencyCollection(identifier, (Collection<Object>) target, dependencyType);
+			
 		} else if (dependencyType.isArray()) {
 			// We can't do anything
 			throw new IllegalStateException("You cannot use Proxywired annotation on an Array !");
+			
 		} else if (dependencyType.isInterface()) {
-			result = this.proxySingleDependency(target, dependencyType);
+			
+			result = this.proxySingleDependency(identifier, target, dependencyType);
 		} else {
+			
 			throw new IllegalStateException("Dependency type not supported by this factory !");
 		}
 
@@ -72,8 +83,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IManageableProxywired proxySingleDependency(final Object target, final Class<?> type) {
-		final TargetSource targetSource = new ProxywiredBean(type, target);
+	protected IManageableProxywired proxySingleDependency(final IProxywiredIdentifier identifier, 
+			final Object target, final Class<?> type) {
+		final TargetSource targetSource = new ProxywiredBean(identifier, type, target);
 
 		return this.proxywire(targetSource);
 	}
@@ -84,8 +96,8 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IManageableProxywired proxyDependencyList(final List<Object> target) {
-		final TargetSource targetSource = new ProxywiredList(List.class, target);
+	protected IManageableProxywired proxyDependencyList(final IProxywiredIdentifier identifier, final List<Object> target) {
+		final TargetSource targetSource = new ProxywiredList(identifier, List.class, target);
 
 		return this.proxywire(targetSource);
 	}
@@ -96,9 +108,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IManageableProxywired proxyDependencyCollection(final Collection<Object> target,
-			final Class<?> dependencyType) {
-		final TargetSource targetSource = new ProxywiredCollection(dependencyType, target);
+	protected IManageableProxywired proxyDependencyCollection(final IProxywiredIdentifier identifier,
+			final Collection<Object> target, final Class<?> dependencyType) {
+		final TargetSource targetSource = new ProxywiredCollection(identifier, dependencyType, target);
 
 		return this.proxywire(targetSource);
 	}
@@ -109,8 +121,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	 * @param target
 	 * @return
 	 */
-	protected IManageableProxywired proxyDependencyMap(final Map<String, Object> target) {
-		final TargetSource targetSource = new ProxywiredMap(Map.class, target);
+	protected IManageableProxywired proxyDependencyMap(final IProxywiredIdentifier identifier,
+			final Map<String, Object> target) {
+		final TargetSource targetSource = new ProxywiredMap(identifier, Map.class, target);
 
 		return this.proxywire(targetSource);
 	}
@@ -118,7 +131,7 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 	protected IManageableProxywired proxywire(final TargetSource targetSource) {
 		final Class<?>[] proxtyInterfaces = new Class[]{targetSource.getTargetClass(), IManageableProxywired.class};
 		final ProxyFactory proxyFactory = new ProxyFactory(proxtyInterfaces);
-		proxyFactory.addAdvice(new ProxywiredManageableInterceptor((IManageableProxywired) targetSource));
+		proxyFactory.addAdvice(new InterfaceImplementationAdvice(IManageableProxywired.class, (IManageableProxywired)targetSource));
 		proxyFactory.setTargetSource(targetSource);
 
 		return (IManageableProxywired) proxyFactory.getProxy();
@@ -126,8 +139,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	private class ProxywiredBean extends ProxywiredStruct<Object> {
 
-		protected ProxywiredBean(final Class<?> type, final Object target) {
-			super(type, target);
+		protected ProxywiredBean(final IProxywiredIdentifier identifier, 
+				final Class<?> type, final Object target) {
+			super(identifier, type, target);
 		}
 
 		@Override
@@ -168,8 +182,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	private class ProxywiredList extends ProxywiredStruct<List<Object>> {
 
-		protected ProxywiredList(final Class<?> type, final List<Object> target) {
-			super(type, target);
+		protected ProxywiredList(final IProxywiredIdentifier identifier, 
+				final Class<?> type, final List<Object> target) {
+			super(identifier, type, target);
 		}
 
 		@Override
@@ -190,8 +205,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	private class ProxywiredCollection extends ProxywiredStruct<Collection<Object>> {
 
-		protected ProxywiredCollection(final Class<?> type, final Collection<Object> target) {
-			super(type, target);
+		protected ProxywiredCollection(final IProxywiredIdentifier identifier, 
+				final Class<?> type, final Collection<Object> target) {
+			super(identifier, type, target);
 		}
 
 		@Override
@@ -222,8 +238,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	private class ProxywiredMap extends ProxywiredStruct<Map<String, Object>> {
 
-		protected ProxywiredMap(final Class<?> type, final Map<String, Object> target) {
-			super(type, target);
+		protected ProxywiredMap(final IProxywiredIdentifier identifier, 
+				final Class<?> type, final Map<String, Object> target) {
+			super(identifier, type, target);
 		}
 
 		@Override
@@ -240,6 +257,8 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 	private abstract class ProxywiredStruct<T> implements TargetSource, IManageableProxywired {
 
+		private final IProxywiredIdentifier identifier;
+
 		private final Class<?> type;
 
 		private Map<String, Object> backingStore;
@@ -248,9 +267,10 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 
 		private boolean lock = false;
 
-		protected ProxywiredStruct(final Class<?> type, final T target) {
+		protected ProxywiredStruct(final IProxywiredIdentifier identifier, final Class<?> type, final T target) {
 			super();
 
+			this.identifier = identifier;
 			this.type = type;
 			this.backingStore = this.initStruct(target);
 			this.cachedProxy = this.buildCachedProxy(this.backingStore);
@@ -322,79 +342,9 @@ public class BasicProxywiredFactory implements IProxywiredFactory {
 			return Collections.unmodifiableSet(this.backingStore.keySet());
 		}
 
-	}
-
-	private class ProxywiredManageableInterceptor implements MethodInterceptor, IManageableProxywired {
-
-		private static final String INTERCEPTED_METHOD_NAME_1 = "modifyProxywiredDependencies";
-
-		private static final String INTERCEPTED_METHOD_NAME_2 = "viewProxywiredDependencies";
-
-		private final IManageableProxywired internalManager;
-
-		/**
-		 * @param internalManager
-		 */
-		public ProxywiredManageableInterceptor(final IManageableProxywired internalManager) {
-			super();
-			this.internalManager = internalManager;
-		}
-
 		@Override
-		@SuppressWarnings("unchecked")
-		public Object invoke(final MethodInvocation invocation) throws Throwable {
-			Object result = null;
-
-			if (this.isMethod1(invocation)) {
-				final LinkedHashMap<String, Object> dependencies = (LinkedHashMap<String, Object>) invocation
-						.getArguments()[0];
-				this.modifyProxywiredDependencies(dependencies);
-				result = null;
-			} else if (this.isMethod2(invocation)) {
-				result = this.viewProxywiredDependencies();
-			} else {
-				result = invocation.proceed();
-			}
-
-			return result;
-		}
-
-		@Override
-		public void modifyProxywiredDependencies(final LinkedHashMap<String, Object> dependencies) {
-			this.internalManager.modifyProxywiredDependencies(dependencies);
-		}
-
-		@Override
-		public Set<String> viewProxywiredDependencies() {
-			return this.internalManager.viewProxywiredDependencies();
-		}
-
-		/**
-		 * Test if the invoked method is the one we want to advice.
-		 * 
-		 * @param invocation
-		 * @return
-		 */
-		protected boolean isMethod1(final MethodInvocation invocation) {
-			final Method method = invocation.getMethod();
-
-			final boolean testName = ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_1.equals(method.getName());
-
-			return testName;
-		}
-
-		/**
-		 * Test if the invoked method is the one we want to advice.
-		 * 
-		 * @param invocation
-		 * @return
-		 */
-		protected boolean isMethod2(final MethodInvocation invocation) {
-			final Method method = invocation.getMethod();
-
-			final boolean testName = ProxywiredManageableInterceptor.INTERCEPTED_METHOD_NAME_2.equals(method.getName());
-
-			return testName;
+		public IProxywiredIdentifier getIdentifier() {
+			return this.identifier;
 		}
 
 	}

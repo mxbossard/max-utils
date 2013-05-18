@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 
 /**
@@ -29,6 +30,10 @@ import org.springframework.beans.factory.config.DependencyDescriptor;
  * 
  */
 public interface IProxywiredManager {
+
+	static final String WIRED_BEANS_CONFIG_KEY = "wiredBeans";
+
+	static final String WIRING_PREFS_SEPARATOR = ",";
 
 	/**
 	 * Retrieve a Proxywired dependency for injection.
@@ -45,18 +50,26 @@ public interface IProxywiredManager {
 	/**
 	 * Modify a Proxywired dependency.
 	 * 
+	 * @param id
+	 * @param beanNames
+	 */
+	void modifyProxywiredDependencies(IProxywiredIdentifier id, LinkedHashSet<String> beanNames);
+
+	/**
+	 * Modify all Proxywired dependency matching the proxywiredType.
+	 * 
 	 * @param proxywiredKey
 	 * @param beanNames
 	 */
-	void modifyProxywiredDepencies(String proxywiredKey, LinkedHashSet<String> beanNames);
+	void modifyAllProxywiredDepencies(Class<?> proxywiredType, LinkedHashSet<String> beanNames);
 
 	/**
 	 * Ordered view of all bean names currently in one Proxywired dependency.
 	 * 
-	 * @param proxywiredKey
+	 * @param id
 	 * @return
 	 */
-	Set<String> viewProxywiredDependencies(String proxywiredKey);
+	Set<String> viewProxywiredDependencies(IProxywiredIdentifier id);
 
 	/**
 	 * View of all bean names of a specific type currently laying in the BeanFactory.
@@ -87,6 +100,29 @@ public interface IProxywiredManager {
 		 * @return
 		 */
 		Set<String> viewProxywiredDependencies();
+
+		/**
+		 * The identifier for this Proxywired resource.
+		 * 
+		 * @return
+		 */
+		IProxywiredIdentifier getIdentifier();
+	}
+
+	/**
+	 * Identify some Proxywired resources.
+	 * 
+	 * @author Maxime Bossard - 2013
+	 * 
+	 */
+	public interface IProxywiredIdentifier {
+
+		/**
+		 * Each @Proxywired is associated with a Configuration subset.
+		 * 
+		 * @return the associated Configuration subset
+		 */
+		Configuration getConfigurationSubset(Configuration allConfiguration);
 
 	}
 
