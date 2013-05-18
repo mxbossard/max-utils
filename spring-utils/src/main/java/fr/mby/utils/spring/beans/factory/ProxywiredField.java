@@ -17,8 +17,8 @@
 package fr.mby.utils.spring.beans.factory;
 
 import java.lang.reflect.Field;
-import java.util.prefs.Preferences;
 
+import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.util.Assert;
 
@@ -30,7 +30,7 @@ import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredIdentifie
  */
 public class ProxywiredField implements IProxywiredIdentifier {
 
-	private final String nodePathName;
+	private String nodePath;
 
 	protected ProxywiredField(final DependencyDescriptor descriptor, final String wiredClassName) {
 		super();
@@ -42,7 +42,7 @@ public class ProxywiredField implements IProxywiredIdentifier {
 
 		Assert.hasText(wiredClassName, "Wired class name cannot be found !");
 
-		this.nodePathName = wiredClassName.replaceAll("\\.", "/") + "/__field__/" + fieldName;
+		this.buildNodePath(wiredClassName, fieldName);
 	}
 
 	public ProxywiredField(final Class<?> wiredClass, final String fieldName) {
@@ -51,24 +51,32 @@ public class ProxywiredField implements IProxywiredIdentifier {
 		Assert.notNull(wiredClass, "No Wired class provided !");
 		Assert.hasText(fieldName, "No Field name provided !");
 
-		this.nodePathName = wiredClass.getName().replaceAll("\\.", "/") + "/__field__/" + fieldName;
+		this.buildNodePath(wiredClass.getName(), fieldName);
+	}
+
+	/**
+	 * @param wiredClassName
+	 * @param fieldName
+	 */
+	protected void buildNodePath(final String wiredClassName, final String fieldName) {
+		this.nodePath = wiredClassName + "." + fieldName;
 	}
 
 	@Override
-	public Preferences getPreferencesNode(final Preferences proxywiredPreferences) {
-		return proxywiredPreferences.node(this.nodePathName);
+	public Configuration getConfigurationSubset(final Configuration allConfiguration) {
+		return allConfiguration.subset(this.nodePath);
 	}
 
 	@Override
 	public String toString() {
-		return "ProxywiredField [nodePathName=" + this.nodePathName + "]";
+		return "ProxywiredField [nodePath=" + this.nodePath + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((this.nodePathName == null) ? 0 : this.nodePathName.hashCode());
+		result = prime * result + ((this.nodePath == null) ? 0 : this.nodePath.hashCode());
 		return result;
 	}
 
@@ -84,11 +92,11 @@ public class ProxywiredField implements IProxywiredIdentifier {
 			return false;
 		}
 		final ProxywiredField other = (ProxywiredField) obj;
-		if (this.nodePathName == null) {
-			if (other.nodePathName != null) {
+		if (this.nodePath == null) {
+			if (other.nodePath != null) {
 				return false;
 			}
-		} else if (!this.nodePathName.equals(other.nodePathName)) {
+		} else if (!this.nodePath.equals(other.nodePath)) {
 			return false;
 		}
 		return true;

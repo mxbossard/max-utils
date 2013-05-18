@@ -16,8 +16,7 @@
 
 package fr.mby.utils.spring.beans.factory;
 
-import java.util.prefs.Preferences;
-
+import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
@@ -30,7 +29,7 @@ import fr.mby.utils.spring.beans.factory.IProxywiredManager.IProxywiredIdentifie
  */
 public class ProxywiredMethodParam implements IProxywiredIdentifier {
 
-	private final String nodePathName;
+	private String nodePath;
 
 	protected ProxywiredMethodParam(final DependencyDescriptor descriptor, final String wiredClassName) {
 		super();
@@ -43,7 +42,7 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 
 		Assert.hasText(wiredClassName, "Wired class name cannot be found !");
 
-		this.nodePathName = wiredClassName.replaceAll("\\.", "/") + "/" + methodName + "()/" + paramName;
+		this.buildNodePath(wiredClassName, methodName, paramName);
 	}
 
 	public ProxywiredMethodParam(final Class<?> wiredClass, final String methodName, final String paramName) {
@@ -53,24 +52,32 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 		Assert.hasText(methodName, "No Method name provided !");
 		Assert.hasText(paramName, "No Parameter name provided !");
 
-		this.nodePathName = wiredClass.getName().replaceAll("\\.", "/") + "/" + methodName + "()/" + paramName;
+		this.buildNodePath(wiredClass.getName(), methodName, paramName);
+	}
+
+	/**
+	 * @param wiredClassName
+	 * @param fieldName
+	 */
+	protected void buildNodePath(final String wiredClassName, final String methodName, final String fieldName) {
+		this.nodePath = wiredClassName + "." + methodName + "()." + fieldName;
 	}
 
 	@Override
-	public Preferences getPreferencesNode(final Preferences proxywiredPreferences) {
-		return proxywiredPreferences.node(this.nodePathName);
+	public Configuration getConfigurationSubset(final Configuration allConfiguration) {
+		return allConfiguration.subset(this.nodePath);
 	}
 
 	@Override
 	public String toString() {
-		return "ProxywiredMethodParam [nodePathName=" + this.nodePathName + "]";
+		return "ProxywiredMethodParam [nodePath=" + this.nodePath + "]";
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((this.nodePathName == null) ? 0 : this.nodePathName.hashCode());
+		result = prime * result + ((this.nodePath == null) ? 0 : this.nodePath.hashCode());
 		return result;
 	}
 
@@ -86,11 +93,11 @@ public class ProxywiredMethodParam implements IProxywiredIdentifier {
 			return false;
 		}
 		final ProxywiredMethodParam other = (ProxywiredMethodParam) obj;
-		if (this.nodePathName == null) {
-			if (other.nodePathName != null) {
+		if (this.nodePath == null) {
+			if (other.nodePath != null) {
 				return false;
 			}
-		} else if (!this.nodePathName.equals(other.nodePathName)) {
+		} else if (!this.nodePath.equals(other.nodePath)) {
 			return false;
 		}
 		return true;

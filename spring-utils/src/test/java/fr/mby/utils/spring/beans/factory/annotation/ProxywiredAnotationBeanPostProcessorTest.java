@@ -316,8 +316,6 @@ public class ProxywiredAnotationBeanPostProcessorTest {
 	 */
 	@Test
 	public void loadTest() throws Exception {
-		this.proxywiredManager.setFlushPreferencesOnModification(false);
-
 		@SuppressWarnings("unused")
 		final LoadRunner<?, ?> loadRunner = new LoadRunner<ProxywiredAnotationBeanPostProcessorTest, Void>(1000, 50,
 				this) {

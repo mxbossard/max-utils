@@ -19,8 +19,8 @@ package fr.mby.utils.spring.beans.factory;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.prefs.Preferences;
 
+import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.factory.config.DependencyDescriptor;
 
 /**
@@ -114,11 +114,11 @@ public interface IProxywiredManager {
 	public interface IProxywiredIdentifier {
 
 		/**
-		 * Each @Proxywired is associated with a preferences node.
+		 * Each @Proxywired is associated with a Configuration subset.
 		 * 
-		 * @return this preferences node
+		 * @return the associated Configuration subset
 		 */
-		Preferences getPreferencesNode(Preferences proxywiredPreferences);
+		Configuration getConfigurationSubset(Configuration allConfiguration);
 
 	}
 

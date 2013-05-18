@@ -15,8 +15,16 @@
 		<spring.version>3.2.1.RELEASE</spring.version>
 	</properties>
 
-	<dependencies>
-		<!-- Spring dependencies -->
+	<dependencies>	
+		<!-- MBY -->
+		<dependency>
+			<groupId>fr.mby.utils</groupId>
+			<artifactId>common-utils</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- Spring -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-beans</artifactId>
@@ -43,11 +51,11 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Apache commons -->
 		<dependency>
-			<groupId>fr.mby.utils</groupId>
-			<artifactId>common-utils</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<scope>test</scope>
+		    <groupId>commons-configuration</groupId>
+		    <artifactId>commons-configuration</artifactId>
+		    <version>1.9</version>
 		</dependency>
 	</dependencies>
 
