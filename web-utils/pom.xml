@@ -8,5 +8,4 @@
   </parent>
   <artifactId>web-utils</artifactId>
   <groupId>fr.mby.utils</groupId>
-  <version>0.0.1-SNAPSHOT</version>
 </project>

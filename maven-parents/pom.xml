@@ -6,7 +6,6 @@
 	<modules>
 		<module>basic-parent</module>
 	</modules>
-	<version>0.0.1-SNAPSHOT</version>
 	<groupId>fr.mby.maven</groupId>
 	<parent>
 		<groupId>fr.mby.utils</groupId>
