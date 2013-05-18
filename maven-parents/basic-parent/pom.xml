@@ -6,8 +6,8 @@
 	<modules>
 		<module>basic-bundle-parent</module>
 	</modules>
-	<version>0.0.1-SNAPSHOT</version>
 	<groupId>fr.mby.maven</groupId>
+	<version>0.0.1.BASIC_PARENT-SNAPSHOT</version>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

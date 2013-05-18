@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.mby.maven</groupId>
 		<artifactId>basic-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.1.BASIC_PARENT-SNAPSHOT</version>
 		<relativePath>../maven-parents/basic-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>spring-utils</artifactId>
@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>fr.mby.utils</groupId>
 			<artifactId>common-utils</artifactId>
-			<version>${project.version}</version>
+			<version>[0.0.1-SNAPSHOT,)</version>
 			<scope>compile</scope>
 		</dependency>
 		
@@ -58,4 +58,5 @@
 		</dependency>
 	</dependencies>
 
+	<version>0.0.1-SNAPSHOT</version>
 </project>

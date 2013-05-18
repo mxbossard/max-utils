@@ -1,0 +1,81 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>web-bundle-parent</artifactId>
+	<packaging>pom</packaging>
+	<groupId>fr.mby.maven</groupId>
+	<parent>
+		<groupId>fr.mby.maven</groupId>
+		<artifactId>basic-bundle-parent</artifactId>
+		<version>0.0.1.BASIC_PARENT-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<Web-ContextPath>/</Web-ContextPath>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/webapp/WEB-INF</directory>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+		</testResources>
+		
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.virgo.bundlor</groupId>
+				<artifactId>org.eclipse.virgo.bundlor.maven</artifactId>
+				<version>${bundlor.version}</version>
+				<configuration>
+					<manifestTemplatePath>src/main/resources/META-INF/template.mf</manifestTemplatePath>
+					<outputPath>${basedir}/src/main/resources/</outputPath>
+					<manifestTemplate>
+						Bundle-ManifestVersion: 2
+						Bundle-Name:
+						${project.artifactId}
+						Bundle-SymbolicName:
+						${project.groupId}_${project.artifactId}_${Bundle-Version}
+						Bundle-Version: ${Bundle-Version}
+						Bundle-Vendor: ${project.groupId}
+						Bundle-Classpath: .
+						Web-ContextPath: ${Web-ContextPath}
+						Import-Package: org.eclipse.gemini.blueprint.blueprint.config
+					</manifestTemplate>
+				</configuration>
+				<executions>
+					<execution>
+						<id>bundlor-auto</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>bundlor</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<!-- ================================================ -->
+	<!-- Repository Configuration -->
+	<!-- ================================================ -->
+	<pluginRepositories>
+
+	</pluginRepositories>
+	<repositories>
+
+	</repositories>
+
+</project>

@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>basic-parent</artifactId>
 		<groupId>fr.mby.maven</groupId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.1.BASIC_PARENT-SNAPSHOT</version>
 		<relativePath>../maven-parents/basic-parent/pom.xml</relativePath>
 	</parent>
 	<artifactId>common-utils</artifactId>
@@ -53,4 +53,5 @@
 		</dependency>
 
 	</dependencies>
+	<version>0.0.1-SNAPSHOT</version>
 </project>
