@@ -1,15 +1,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+	<groupId>fr.mby.maven</groupId>
 	<artifactId>maven-parents</artifactId>
 	<packaging>pom</packaging>
-	<modules>
-		<module>basic-parent</module>
-	</modules>
-	<groupId>fr.mby.maven</groupId>
+
 	<parent>
 		<groupId>fr.mby.utils</groupId>
 		<artifactId>max-utils</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
+
+	<modules>
+		<module>basic</module>
+		<module>basic-bundle</module>
+		<module>basic-bundle-web</module>
+		<module>spring-basic</module>
+		<module>spring-basic-bundle</module>
+		<module>spring-basic-bundle-web</module>
+	</modules>
+
 </project>

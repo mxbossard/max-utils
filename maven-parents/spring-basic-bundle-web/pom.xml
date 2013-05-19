@@ -1,0 +1,85 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>fr.mby.maven</groupId>
+	<artifactId>spring-basic-bundle-web</artifactId>
+	<packaging>pom</packaging>
+	
+	<parent>
+		<groupId>fr.mby.maven</groupId>
+		<artifactId>spring-basic-bundle</artifactId>
+		<version>1.0.0.PARENT</version>
+		<relativePath>../spring-basic-bundle/pom.xml</relativePath>
+	</parent>
+
+	<properties>
+		<web.contextPath>/</web.contextPath>
+		
+		<!-- Spring bundle versions -->
+		<spring-webflow.version>2.3.2.RELEASE</spring-webflow.version>
+
+		<!-- template.mf config -->
+		<bundlor.template.classPath>WEB-INF/classes</bundlor.template.classPath>
+		<bundlor.template.webContextPath>${project.artifactId}</bundlor.template.webContextPath>
+		<bundlor.template.webAppContext>${bundlor.template.webContextPath}</bundlor.template.webAppContext>		
+	</properties>
+
+	<dependencies>
+		<!-- Spring dependencies -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.webflow</groupId>
+			<artifactId>spring-webflow</artifactId>
+			<version>${spring-webflow.version}</version>
+		</dependency>	
+	</dependencies>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>		
+			<resource>
+				<directory>${manifest.dirPath}/META-INF</directory>
+			</resource>				
+			<resource>
+				<directory>src/main/webapp/WEB-INF</directory>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+		</testResources>
+		
+		<plugins>
+			
+		</plugins>
+		
+		<pluginManagement>
+			<plugins>
+
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<!-- ================================================ -->
+	<!-- Repository Configuration -->
+	<!-- ================================================ -->
+	<pluginRepositories>
+
+	</pluginRepositories>
+	<repositories>
+
+	</repositories>
+
+</project>

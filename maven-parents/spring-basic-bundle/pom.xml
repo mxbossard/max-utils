@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>fr.mby.maven</groupId>
+	<artifactId>spring-basic-bundle</artifactId>
+	<packaging>pom</packaging>
+
+	<parent>
+		<relativePath>../basic-bundle/pom.xml</relativePath>
+		<groupId>fr.mby.maven</groupId>
+		<artifactId>basic-bundle</artifactId>
+		<version>1.0.0.PARENT</version>
+	</parent>
+
+	<properties>
+		<!-- Spring bundle versions -->
+		<spring.version>3.2.1.RELEASE</spring.version>
+		<spring-security.version>3.1.4.RELEASE</spring-security.version>
+		<blueprint.version>1.0.2.RELEASE</blueprint.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.eclipse.gemini</groupId>
+			<artifactId>org.eclipse.gemini.blueprint.core</artifactId>
+			<version>${blueprint.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>${spring-security.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-expression</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-aop</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-beans</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>spring-context</artifactId>
+					<groupId>org.springframework</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+	</dependencies>
+
+</project>

@@ -1,0 +1,37 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>fr.mby.maven</groupId>
+	<artifactId>spring-basic</artifactId>
+	<packaging>pom</packaging>
+
+	<parent>
+		<relativePath>../basic/pom.xml</relativePath>
+		<groupId>fr.mby.maven</groupId>
+		<artifactId>basic</artifactId>
+		<version>1.0.0.PARENT</version>
+	</parent>
+
+	<properties>
+		<!-- Some versions -->
+		<spring.version>3.2.1.RELEASE</spring.version>
+	</properties>
+
+	<dependencies>
+		<!-- Spring 3 -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+		
+	</dependencies>
+
+</project>
