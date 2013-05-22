@@ -1,0 +1,28 @@
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: ${bundle.symbolicName}
+Bundle-Name: ${bundle.name}		
+Bundle-Version: ${bundle.version}
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ClassPath: ${bundlor.template.classPath}
+Import-Template: 
+ fr.mby.utils.common.*;version="[0.0.1, 2.0.0)",
+ fr.mby.utils.spring.*;version="[0.0.1, 2.0.0)",
+ org.apache.commons.configuration.*;version="${apache-commons-configuration.version:apache}",
+ org.apache.commons.logging.*;version="[1.0, 2.0)",
+ org.apache.commons.lang.*;version="[2.0, 3.0)",
+ org.apache.logging.log4j.*;version="[2.0.0, 3.0.0)",
+ org.springframework.aop.*;version="${spring.version:major-range}",
+ org.springframework.aspects.*;version="${spring.version:major-range}",
+ org.springframework.beans.*;version="${spring.version:major-range}",
+ org.springframework.beans.*;version="${spring.version:major-range}",
+ org.springframework.context.*;version="${spring.version:major-range}",
+ org.springframework.context.support.*;version="${spring.version:major-range}",
+ org.springframework.core.*;version="${spring.version:major-range}",
+ org.springframework.stereotype.*;version="${spring.version:major-range}",
+ org.springframework.util.*;version="${spring.version:major-range}",
+ org.aopalliance.*;version="[1.0, 1.0]"
+Version-Patterns: 
+ major-range;pattern="[=.=.=.=, +1.0.0.=)",
+ medium-range;pattern="[=.=.=.=, =.+1.0.=)",
+ exact-range;pattern="[=.=.=, =.=.=]",
+ apache;pattern="[=.=, +1.0)"
