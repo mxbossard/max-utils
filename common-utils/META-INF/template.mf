@@ -1,0 +1,14 @@
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: ${bundle.symbolicName}
+Bundle-Name: ${bundle.name}		
+Bundle-Version: ${bundle.version}
+Bundle-ClassPath: ${bundlor.template.classPath}
+Import-Template: 
+ fr.mby.utils.*;version="[0.0.1, 2.0.0)",
+ org.apache.logging.log4j.*;version="[2.0, 3.0)",
+ org.springframework.*;version="${spring.version:major-range}",
+ org.aopalliance.*;version="[1.0, 1.0]"
+Version-Patterns: 
+ major-range;pattern="[=.=.=.=, +1.0.0.=)",
+ medium-range;pattern="[=.=.=.=, =.+1.0.=)",
+ exact-range;pattern="[=.=.=, =.=.=]"
