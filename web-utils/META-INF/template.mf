@@ -1,0 +1,17 @@
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: ${bundle.symbolicName}
+Bundle-Name: ${bundle.name}		
+Bundle-Version: ${bundle.version}
+Bundle-ClassPath: ${bundlor.template.classPath}
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Excluded-Exports: 
+Excluded-Imports: 
+Export-Template: fr.mby.utils.web*
+Ignored-Existing-Headers: 
+Import-Template: 
+ org.osgi.framework*,
+ org.apache.logging.log4j;version="[2.0.0, 3.0.0)"
+Version-Patterns: 
+ major-range;pattern="[=.=.=, +1.0.0)",
+ medium-range;pattern="[=.=.=, =.+1.0)",
+ exact-range;pattern="[=.=.=, =.=.=]"
