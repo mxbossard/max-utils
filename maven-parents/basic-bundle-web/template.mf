@@ -2,23 +2,33 @@ Bundle-ManifestVersion: 2
 Bundle-SymbolicName: ${bundle.symbolicName}
 Bundle-Name: ${bundle.name}		
 Bundle-Version: ${bundle.version}
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-ClassPath: ${bundlor.template.classPath}
 Bundle-ClassPath: ${bundlor.template.classPath}
 Web-ContextPath: ${bundlor.template.webContextPath}
 Webapp-Context: ${bundlor.template.webAppContext}
-Excluded-Exports: fr.mby.*
+Import-Package:
+ javax.servlet,
+ javax.servlet.http,
+ javax.servlet.resources,
+ javax.servlet.jsp,
+ javax.servlet.jsp.el,
+ javax.servlet.jsp.jstl.core,
+ org.eclipse.virgo.web.dm,
+ org.eclipse.gemini.blueprint.blueprint.config
+Excluded-Exports:
 Excluded-Imports: 
 Export-Template: 
 Ignored-Existing-Headers: 
 Import-Template: 
  fr.mby.portal.api.*;version="${osgi-portal-api.version:medium-range}",
  fr.mby.utils.*;version="[0.0.1, 2.0.0)",
- org.osgi.framework;version="${osgi.version:major-range}",
- org.apache.logging.log4j;version="[${log4j2.version}, 3.0.0)",
- javax.servlet.*;version="${servlet.version}",
- org.eclipse.gemini.blueprint.*;version="${blueprint.version:major-range}",
- org.springframework.*;version="${spring.version:major-range}",
- org.springframework.webflow.*;version="${spring-webflow.version:major-range}",
- org.springframework.security.*;version="${spring-security.version:major-range}"
+ org.osgi.framework,
+ org.apache.logging.log4j.*;version="[2.0.0, 3.0.0)",
+ javax.servlet.*;version="${servlet.version:[=.=.=, +1.0.0)}",
+ javax.servlet.jsp.*;version="[2.2.0,3.0.0)",
+ javax.servlet.jsp.jstl.*;version="[1.2.0,2.0.0)",
+ org.eclipse.gemini.blueprint.*;version="${blueprint.version:major-range}"
 Version-Patterns: 
  major-range;pattern="[=.=.=.=, +1.0.0.=)",
  medium-range;pattern="[=.=.=.=, =.+1.0.=)",

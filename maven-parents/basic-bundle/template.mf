@@ -2,19 +2,12 @@ Bundle-ManifestVersion: 2
 Bundle-SymbolicName: ${bundle.symbolicName}
 Bundle-Name: ${bundle.name}		
 Bundle-Version: ${bundle.version}
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ClassPath: ${bundlor.template.classPath}
-Excluded-Exports: fr.mby.portal.coreimpl*
-Excluded-Imports: 
-Export-Template: 
-Ignored-Existing-Headers: 
 Import-Template: 
- org.osgi.framework;version="${osgi.version:major-range}",
- org.apache.logging.log4j;version="${log4j2.version}",
- javax.servlet.*;version="${servlet.version}",
- org.springframework.*;version="${spring.version:medium-range}",
- org.springframework.security.*;version="${spring-security.version:medium-range}",
- fr.mby.portal.api;version="$osgi-portal-api.version:medium-range}"
+ fr.mby.utils.*;version="[0.0.1, 2.0.0)",
+ org.apache.logging.log4j.*;version="[2.0, 3.0)"
 Version-Patterns: 
- major-range;pattern="[=.=.=, +1.0.0)",
- medium-range;pattern="[=.=.=, =.+1.0)",
+ major-range;pattern="[=.=.=.=, +1.0.0.=)",
+ medium-range;pattern="[=.=.=.=, =.+1.0.=)",
  exact-range;pattern="[=.=.=, =.=.=]"

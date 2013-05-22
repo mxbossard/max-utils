@@ -20,11 +20,11 @@
 		<!-- Default MANIFEST.MF params override by template -->
 		<bundle.name>${project.groupId} ${project.artifactId}</bundle.name>
 		<bundle.version>${project.version}</bundle.version>
-		<bundle.symbolicName>${project.groupId}_${project.artifactId}_${bundle.version}</bundle.symbolicName>
+		<bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
 
 		<!-- Bundlor configuration -->
-		<manifest.dirPath>${basedir}</manifest.dirPath>
-		<bundlor.templatePath>${manifest.dirPath}/META-INF/template.mf</bundlor.templatePath>
+		<metainf.parentPath>${basedir}</metainf.parentPath>
+		<bundlor.templatePath>${metainf.parentPath}/META-INF/template.mf</bundlor.templatePath>
 		
 		<!-- template.mf content -->
 		<bundlor.template.classPath>.</bundlor.template.classPath>
@@ -43,7 +43,7 @@
 	<build>
 		<resources>
 			<resource>
-				<directory>${manifest.dirPath}/META-INF</directory>
+				<directory>${metainf.parentPath}/META-INF</directory>
 			</resource>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -62,7 +62,7 @@
 						<goals><goal>run</goal></goals>
 						<configuration>
 							<tasks>
-								<mkdir dir="${manifest.dirPath}/META-INF/" />
+								<mkdir dir="${metainf.parentPath}/META-INF/" />
 							</tasks>
 						</configuration>
 					</execution>
@@ -75,7 +75,7 @@
 				<version>2.3.2</version>
 				<configuration>
 					<archive>
-						<manifestFile>${manifest.dirPath}/META-INF/MANIFEST.MF</manifestFile>
+						<manifestFile>${metainf.parentPath}/META-INF/MANIFEST.MF</manifestFile>
 					</archive>
 				</configuration>
 			</plugin>
@@ -98,7 +98,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<outputPath>${manifest.dirPath}</outputPath>
+					<outputPath>${metainf.parentPath}</outputPath>
 					<manifestTemplatePath>${bundlor.templatePath}</manifestTemplatePath>
 				</configuration>
 			</plugin>

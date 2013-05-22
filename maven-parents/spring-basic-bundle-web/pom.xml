@@ -4,7 +4,7 @@
 	<groupId>fr.mby.maven</groupId>
 	<artifactId>spring-basic-bundle-web</artifactId>
 	<packaging>pom</packaging>
-	
+
 	<parent>
 		<groupId>fr.mby.maven</groupId>
 		<artifactId>spring-basic-bundle</artifactId>
@@ -14,14 +14,14 @@
 
 	<properties>
 		<web.contextPath>/</web.contextPath>
-		
+
 		<!-- Spring bundle versions -->
 		<spring-webflow.version>2.3.2.RELEASE</spring-webflow.version>
 
 		<!-- template.mf config -->
 		<bundlor.template.classPath>WEB-INF/classes</bundlor.template.classPath>
 		<bundlor.template.webContextPath>${project.artifactId}</bundlor.template.webContextPath>
-		<bundlor.template.webAppContext>${bundlor.template.webContextPath}</bundlor.template.webAppContext>		
+		<bundlor.template.webAppContext>${bundlor.template.webContextPath}</bundlor.template.webAppContext>
 	</properties>
 
 	<dependencies>
@@ -40,17 +40,17 @@
 			<groupId>org.springframework.webflow</groupId>
 			<artifactId>spring-webflow</artifactId>
 			<version>${spring-webflow.version}</version>
-		</dependency>	
+		</dependency>
 	</dependencies>
 
 	<build>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
-			</resource>		
+			</resource>
 			<resource>
 				<directory>${manifest.dirPath}/META-INF</directory>
-			</resource>				
+			</resource>
 			<resource>
 				<directory>src/main/webapp/WEB-INF</directory>
 			</resource>
@@ -60,11 +60,23 @@
 				<directory>src/test/resources</directory>
 			</testResource>
 		</testResources>
-		
+
 		<plugins>
-			
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+				<configuration>
+					<packagingExcludes>WEB-INF/web.xml, WEB-INF/lib/*</packagingExcludes>
+					<archive>
+						<!-- add the generated manifest to the war -->
+						<manifestFile>${metainf.parentPath}/META-INF/MANIFEST.MF</manifestFile>
+					</archive>
+					<failOnMissingWebXml>true</failOnMissingWebXml>
+					<webXml>${basedir}/src/main/webapp/WEB-INF/web.xml</webXml>					
+				</configuration>
+			</plugin>
 		</plugins>
-		
+
 		<pluginManagement>
 			<plugins>
 

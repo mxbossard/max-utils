@@ -4,7 +4,7 @@
 	<groupId>fr.mby.maven</groupId>
 	<artifactId>basic-bundle-web</artifactId>
 	<packaging>pom</packaging>
-	
+
 	<parent>
 		<relativePath>../basic-bundle/pom.xml</relativePath>
 		<groupId>fr.mby.maven</groupId>
@@ -13,7 +13,7 @@
 	</parent>
 
 	<properties>
-		
+
 		<!-- template.mf content -->
 		<bundlor.template.classPath>WEB-INF/classes</bundlor.template.classPath>
 		<bundlor.template.webContextPath>${project.artifactId}</bundlor.template.webContextPath>
@@ -24,10 +24,10 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
-			</resource>		
+			</resource>
 			<resource>
-				<directory>${manifest.dirPath}/META-INF</directory>
-			</resource>				
+				<directory>${metainf.parentPath}/META-INF</directory>
+			</resource>
 			<resource>
 				<directory>src/main/webapp/WEB-INF</directory>
 			</resource>
@@ -37,14 +37,26 @@
 				<directory>src/test/resources</directory>
 			</testResource>
 		</testResources>
-		
+
 		<plugins>
-			
+
 		</plugins>
-		
+
 		<pluginManagement>
 			<plugins>
-
+				<plugin>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>2.1.1</version>
+					<configuration>
+						<packagingExcludes>WEB-INF/web.xml, WEB-INF/lib/*</packagingExcludes>
+						<archive>
+							<!-- add the generated manifest to the war -->
+							<manifestFile>${metainf.parentPath}/META-INF/MANIFEST.MF</manifestFile>
+						</archive>
+						<failOnMissingWebXml>true</failOnMissingWebXml>
+						<webXml>${basedir}/src/main/webapp/WEB-INF/web.xml</webXml>
+					</configuration>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
