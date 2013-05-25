@@ -12,6 +12,8 @@
 
 	<properties>
 		<apache-commons-configuration.version>1.9</apache-commons-configuration.version>
+		
+		<spring.version>3.2.1.RELEASE</spring.version>
 	</properties>
 
 	<dependencies>	
