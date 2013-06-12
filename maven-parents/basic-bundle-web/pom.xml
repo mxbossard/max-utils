@@ -29,7 +29,7 @@
 				<directory>${metainf.parentPath}/META-INF</directory>
 			</resource>
 			<resource>
-				<directory>src/main/webapp/WEB-INF</directory>
+				<directory>src/main/webapp</directory>
 			</resource>
 		</resources>
 		<testResources>
