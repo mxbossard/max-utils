@@ -8,8 +8,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<log4j2.version>2.0-beta4</log4j2.version>
+		<log4j2.version>2.0-beta8</log4j2.version>
 		<junit.version>4.11</junit.version>
+		<java.version>1.7</java.version>
 	</properties>
 	
 	<dependencies>
@@ -45,9 +46,9 @@
 				<configuration>
 					<verbose>true</verbose>
 					<fork>true</fork>
-					<compilerVersion>1.6</compilerVersion>
-					<source>1.6</source>
-					<target>1.6</target>
+					<compilerVersion>${java.version}</compilerVersion>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
 				</configuration>
 			</plugin>
 		</plugins>
