@@ -49,7 +49,7 @@
 				<directory>src/main/resources</directory>
 			</resource>
 			<resource>
-				<directory>${manifest.dirPath}/META-INF</directory>
+				<directory>${metainf.parentPath}/META-INF</directory>
 			</resource>
 			<resource>
 				<directory>src/main/webapp</directory>
