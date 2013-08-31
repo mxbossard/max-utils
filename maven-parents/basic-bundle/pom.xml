@@ -23,7 +23,7 @@
 		<bundle.symbolicName>${project.groupId}.${project.artifactId}</bundle.symbolicName>
 
 		<!-- Bundlor configuration -->
-		<metainf.parentPath>${basedir}</metainf.parentPath>
+		<metainf.parentPath>${basedir}/src/main/resources</metainf.parentPath>
 		<bundlor.templatePath>${metainf.parentPath}/META-INF/template.mf</bundlor.templatePath>
 		
 		<!-- template.mf content -->
