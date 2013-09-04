@@ -43,9 +43,6 @@
 	<build>
 		<resources>
 			<resource>
-				<directory>${metainf.parentPath}/META-INF</directory>
-			</resource>
-			<resource>
 				<directory>src/main/resources</directory>
 			</resource>
 		</resources>
