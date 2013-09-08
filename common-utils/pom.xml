@@ -9,9 +9,10 @@
 	</parent>
 	<artifactId>common-utils</artifactId>
 	<groupId>fr.mby.utils</groupId>
+	<version>0.0.2.SNAPSHOT</version>
 
 	<properties>
-	
+		<jpa.version>2.1.0</jpa.version>
 	</properties>
 
 	<dependencies>
@@ -52,6 +53,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- JPA -->
+		<dependency>
+		    <groupId>org.eclipse.persistence</groupId>
+		    <artifactId>javax.persistence</artifactId>
+		    <version>${jpa.version}</version>
+		</dependency>
+		
 	</dependencies>
-	<version>0.0.1.SNAPSHOT</version>
 </project>
