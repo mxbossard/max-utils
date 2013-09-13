@@ -49,8 +49,10 @@ public abstract class AbstractOsgiJpaDao implements BundleContextAware, Initiali
 
 	@Override
 	public void destroy() throws Exception {
-		this.emf.close();
-		this.emf = null;
+		if (this.emf != null) {
+			this.emf.close();
+			this.emf = null;
+		}
 	}
 
 	@Override

@@ -49,7 +49,7 @@ public abstract class EmCallback<T> {
 		final EntityManager em = emf.createEntityManager();
 
 		try {
-			this.executeWithEntityManager(em);
+			this.result = this.executeWithEntityManager(em);
 		} finally {
 			if (em != null && em.isOpen()) {
 				em.close();
